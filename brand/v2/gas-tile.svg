@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="GAS app tile">
+  <defs><mask id="tile-x">
+    <rect width="200" height="200" rx="46" fill="#fff"/>
+    <g fill="none" stroke="#000" stroke-width="22" stroke-linecap="butt" stroke-linejoin="miter" ><path d="M139 88V76A15 15 0 0 0 124 61H76A15 15 0 0 0 61 76V124A15 15 0 0 0 76 139H124A15 15 0 0 0 139 124V112H112"/></g>
+  </mask></defs>
+  <rect width="200" height="200" rx="46" fill="#00e5ff" mask="url(#tile-x)"/>
+</svg>
