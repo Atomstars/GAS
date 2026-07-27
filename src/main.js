@@ -7,6 +7,7 @@ import { Director } from './core/director.js';
 import { Pointer } from './core/pointer.js';
 import { loadFont, makeTextGeometry } from './core/text3d.js';
 import { SHARED, buildEnvironment, FINISH } from './core/material.js';
+import { markSVG, atomAt } from './core/mark.js';
 import { PROJECTS, repoUrl } from './data/projects.js';
 import { createTitleFrame } from './frames/f01-title.js';
 import { createCraftFrame } from './frames/f02-craft.js';
@@ -127,21 +128,6 @@ async function boot() {
     .to(lens, { fade: 0, duration: 1.8, ease: 'power2.inOut' })
     .to(lens, { bars: 0.075, duration: 2.0, ease: 'power4.inOut' }, 0.15);
 
-  /* ---- the mark docks to the corner and stays ----
-     Once the title beat is over the wordmark does not disappear, it
-     travels to the top-right and becomes the header for the rest of the
-     film. Parented to the camera each frame so it holds its screen
-     position through every move. */
-  const headEnv = buildEnvironment(renderer, { accentA: 0x59e2ff, accentB: 0xff5fd2, key: 3.0 });
-  headerMat = FINISH.obsidian(headEnv);
-  headerMat.transparent = true;
-  headerMat.opacity = 0;
-  headerMat.depthTest = false;
-  header = new THREE.Mesh(makeTextGeometry('GAS', { width: 2.5, depth: 0.28, quality: 'mid' }), headerMat);
-  header.renderOrder = 60;
-  header.visible = false;
-  scene.add(header);
-
   window.GAS.ready = true;
 }
 
@@ -158,8 +144,12 @@ const smoothstep = (e0, e1, x) => {
   return t * t * (3 - 2 * t);
 };
 
-let header = null, headerMat = null;
-const _hv = new THREE.Vector3();
+/* The brand is DOM/SVG, not 3D. A logo has to be pin-sharp at 30px and
+   sit in a fixed place; extruded geometry in a perspective camera is
+   neither. It lives top-left, like every website's does. */
+const brandEl = document.getElementById('brand');
+document.getElementById('brand-mark').innerHTML = markSVG();
+const atomEl = document.getElementById('gas-atom');
 
 const navEl = document.getElementById('nav');
 const NAV_LABELS = ['GAS', 'CRAFT', ...PROJECTS.map(p => p.name.split(' ')[0]), 'CONTACT'];
@@ -282,19 +272,16 @@ function tick() {
   endEl.style.opacity = String(endOp);
   endEl.classList.toggle('on', endOp > 0.5);
 
-  /* --- the docked mark --- */
-  if (header) {
-    const d = 9;
-    const hh = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * d;
-    /* inset from the frame edge AND clear of the letterbox bar —
-       docked at 0.76 it sat underneath the top bar */
-    _hv.set(hh * camera.aspect * 0.66, hh * (0.98 - lens.bars * 2.6), -d);
-    camera.localToWorld(_hv);
-    header.position.copy(_hv);
-    header.quaternion.copy(camera.quaternion);
+  /* --- the brand --- */
+  {
     const op = smoothstep(0.050, 0.150, P) * (1 - smoothstep(0.965, 1.0, P));
-    headerMat.opacity = op * 0.92;
-    header.visible = op > 0.01;
+    brandEl.style.opacity = String(op);
+    /* the atom in the mark carries the same energy the film does:
+       still when the viewer is still, orbiting when they move */
+    const e = Math.min(1, pointer.rippleAmp * 0.7 + speed * 0.6);
+    const a = atomAt(e, t);
+    atomEl.setAttribute('cx', a.cx.toFixed(2));
+    atomEl.setAttribute('cy', a.cy.toFixed(2));
   }
 
   /* --- where am I in the film --- */

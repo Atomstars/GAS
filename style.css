@@ -178,6 +178,21 @@ h2 {
   box-shadow: 0 0 10px rgba(70,216,255,.6);
 }
 
+/* ---------------- brand ---------------- */
+#brand {
+  position: fixed; z-index: 40;
+  top: calc(var(--bar) + 2.4vh); left: clamp(20px, 3.4vw, 46px);
+  display: flex; align-items: center; gap: 11px;
+  opacity: 0; pointer-events: none;
+}
+#brand-mark { display: block; width: 30px; height: 30px; color: var(--ink); }
+#brand-mark svg { display: block; width: 100%; height: 100%; }
+#brand-word {
+  font-family: 'Syncopate', sans-serif; font-weight: 700;
+  font-size: 13px; letter-spacing: .30em; text-indent: .30em;
+  color: var(--ink);
+}
+
 /* ---------------- cursor ---------------- */
 #cursor, #cursor-dot { position: fixed; top: 0; left: 0; z-index: 100; pointer-events: none; }
 #cursor {
@@ -189,6 +204,9 @@ h2 {
 #cursor-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 
 @media (pointer: coarse) {
+  #brand { top: calc(var(--bar) + 1.6vh); gap: 9px; }
+  #brand-mark { width: 24px; height: 24px; }
+  #brand-word { font-size: 11px; }
   #cursor, #cursor-dot { display: none; }
   body { cursor: auto; }
   #rail { right: 11px; height: 24vh; }
