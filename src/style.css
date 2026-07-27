@@ -239,6 +239,30 @@ body.ready .bar { height: var(--bar); }
   height: 1px;
   background: rgba(255, 255, 255, .28);
 }
+/* the six project stops on the route */
+#rail-ticks i.stop {
+  left: -5px;
+  width: 11px;
+  background: rgba(255, 255, 255, .45);
+}
+#rail-ticks i.stop::after {
+  content: attr(data-n);
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: .14em;
+  color: var(--faint);
+  transition: color .5s, opacity .5s;
+  opacity: .55;
+}
+#rail-ticks i.stop.live {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(143, 212, 255, .7);
+}
+#rail-ticks i.stop.live::after { color: var(--accent); opacity: 1; }
 #rail-fill {
   position: absolute;
   inset: 0;

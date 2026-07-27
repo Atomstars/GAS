@@ -48,12 +48,17 @@ the shape across. Never cut on nothing.
 |---|---|---|---|
 | 0 | **TITLE** | 90vh | GAS condenses out of volumetric gas. Establish tone. |
 | I | **THESIS** | 120vh | What I build. Kinetic type in 3D — camera flies through the statement. |
-| II | **THE WORK** | 6 × 160vh | Six bespoke project worlds. The payload. |
+| II | **THE WORK** | 890vh over six worlds | Six bespoke project worlds. The payload. |
 | III | **CONTACT** | 90vh | The gas disperses. Contact resolves out of it. |
 
-Note the budget: **the work gets ~70% of the scroll.** The old build gave it 23% and spent
-two-thirds of the journey flying through empty space. That inversion is fixed here by making
-scroll duration an explicit per-shot design decision.
+Per-world budgets are not uniform — they are set by how much material each world actually
+has to show: Davina 160, Job-Agent 150, GMAT 150, Café POS 145, Housing 145, Buddy 140.
+Total journey **1190vh**.
+
+Note the budget: **the work gets 74.8% of the scroll** (assert it with
+`__GAS.shots.shots.filter(s => s.data).reduce((a, s) => a + s.scrollVh, 0) / __GAS.shots.totalVh`).
+The old build gave it 23% and spent two-thirds of the journey flying through empty space.
+That inversion is fixed here by making scroll duration an explicit per-shot design decision.
 
 ---
 

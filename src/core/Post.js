@@ -105,9 +105,14 @@ export class Post {
     this.grade.fade = this.fade;
 
     // extra bloom + aberration while the gas is burning through a transition,
-    // and again while the scroll is moving fast
+    // and again while the scroll is moving fast.
+    //
+    // The bloom coupling is deliberately the weakest of the three. At the original
+    // 1.1 the transition drove bloom to ~2.7 and the HUGE kernel smeared the burn
+    // filaments into a flat full-frame wash — the measured white-out. Aberration and
+    // grain carry the sense of heat instead; they add energy without adding light.
     const heat = this.turbulence + this.velocity.amount * 0.7;
-    this.bloom.intensity = c.bloom * BLOOM_GAIN + heat * 1.1;
+    this.bloom.intensity = c.bloom * BLOOM_GAIN + heat * 0.35;
     const o = 0.0018 + heat * 0.0055;
     this.chroma.offset.set(o, o);
     this.grain.blendMode.opacity.value = 0.28 + heat * 0.14;

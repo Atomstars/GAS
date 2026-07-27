@@ -27,12 +27,21 @@ export class Overlay {
     this.buildRail();
   }
 
+  /* The rail is the route. Every shot gets a tick, and the six project worlds get
+     a numbered stop, so the whole journey is legible as one line with the work
+     strung along it rather than as an anonymous scrollbar. */
   buildRail() {
     const rail = $('#rail-ticks');
     if (!rail) return;
+    this.stops = new Map();
     for (const s of this.shots.shots) {
       const tick = document.createElement('i');
       tick.style.top = `${s.start * 100}%`;
+      if (s.data) {
+        tick.classList.add('stop');
+        tick.dataset.n = String(s.data.index).padStart(2, '0');
+        this.stops.set(s.id, tick);
+      }
       rail.appendChild(tick);
     }
   }
@@ -92,5 +101,9 @@ export class Overlay {
     // --- rail ---
     this.railFill.style.transform = `scaleY(${P})`;
     this.railLabel.textContent = cur.label;
+    if (this.stops && this.lastStop !== cur.id) {
+      this.lastStop = cur.id;
+      for (const [id, el] of this.stops) el.classList.toggle('live', id === cur.id);
+    }
   }
 }

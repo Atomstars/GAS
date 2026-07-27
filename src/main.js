@@ -12,7 +12,13 @@ import { ShotSystem } from './core/ShotSystem.js';
 import { Overlay } from './ui/Overlay.js';
 
 import { TitleShot } from './shots/TitleShot.js';
+import { ThesisShot } from './shots/ThesisShot.js';
 import { DavinaShot } from './shots/DavinaShot.js';
+import { JobAgentShot } from './shots/JobAgentShot.js';
+import { CafePosShot } from './shots/CafePosShot.js';
+import { HousingShot } from './shots/HousingShot.js';
+import { BuddyShot } from './shots/BuddyShot.js';
+import { GmatShot } from './shots/GmatShot.js';
 import { ContactShot } from './shots/ContactShot.js';
 
 /* GAS — cinematic scroll-piloted portfolio.
@@ -40,7 +46,13 @@ const assets = new Assets(renderer);
 /* -------------------------------- shots -------------------------------- */
 const shots = new ShotSystem();
 shots.add(new TitleShot());
+shots.add(new ThesisShot());
 shots.add(new DavinaShot(assets));
+shots.add(new JobAgentShot());
+shots.add(new CafePosShot());
+shots.add(new HousingShot());
+shots.add(new BuddyShot());
+shots.add(new GmatShot());
 shots.add(new ContactShot());
 shots.layout();
 
@@ -138,6 +150,7 @@ requestAnimationFrame(() => {
 /* dev-only handle for inspecting shots without a screenshot */
 if (import.meta.env?.DEV) {
   window.__GAS = { THREE, renderer, shots, post, gas, overlay, lenis, progress };
+  import('./dev/harness.js').then((m) => m.installHarness(window.__GAS));
 }
 
 /* ------------------------------- cursor -------------------------------- */

@@ -74,22 +74,33 @@ void main(){
       (snoise(vec3(vUv * (uScale * 1.3), t * 0.6)) * 0.5 + 0.5) * 0.62
     + (snoise(vec3(vUv * (uScale * 3.0), t * 1.1)) * 0.5 + 0.5) * 0.38;
 
-  // centred so that at p=0.5 the average pixel is genuinely half gone, and the
-  // incoming world lags just enough that the midpoint reads as gas, not a blend
-  float aFrom = 1.0 - smoothstep(thr * 0.5,        thr * 0.5 + 0.50, p);
-  float aTo   =       smoothstep(thr * 0.5 + 0.14, thr * 0.5 + 0.64, p);
+  // Centred so that at p=0.5 the average pixel is genuinely half gone. The lag on
+  // the incoming world is small on purpose: at a wide lag the two worlds barely
+  // overlap and the midpoint is pure gas with no imagery in it at all — measured,
+  // both shots summed to 0.015 mean luminance there. Since the entire point of
+  // this transition is to carry a SHAPE across the cut (SHOTLIST §2), the shapes
+  // have to co-exist for a moment.
+  float aFrom = 1.0 - smoothstep(thr * 0.5,        thr * 0.5 + 0.54, p);
+  float aTo   =       smoothstep(thr * 0.5 + 0.06, thr * 0.5 + 0.60, p);
 
   vec3 col = cFrom * aFrom + cTo * aTo;
 
   // the burn edge: pixels mid-transition emit. this is what feeds bloom and
   // makes the break-up read as gas igniting.
+  //
+  // The tent 1-|a*2-1| is deliberately raised to a high power. The dissolve
+  // threshold is a smooth field, so the tent sits above 0.7 across roughly a fifth
+  // of it — left soft, that fifth of the FRAME all burns at once and the cut blows
+  // out to a flat wash. Isolating the edge term measured it at 0.383 mean luminance
+  // on its own, against 0.015 for both worlds combined. At this exponent only pixels
+  // genuinely ON the boundary reach full strength, so the burn traces the break-up.
   float eFrom = (1.0 - abs(aFrom * 2.0 - 1.0)) * (1.0 - aTo);
   float eTo   = (1.0 - abs(aTo   * 2.0 - 1.0)) * (1.0 - aFrom);
-  float edge  = max(eFrom, eTo);
+  float edge  = pow(max(eFrom, eTo), 6.0);
 
   // fine filament detail inside the burn
   float fil = snoise(vec3(vUv * (uScale * 6.0), t * 1.7)) * 0.5 + 0.5;
-  edge *= mix(0.55, 1.35, fil);
+  edge *= mix(0.25, 1.5, fil * fil);
 
   col += uEdgeColor * edge * env * uEdgeStrength;
 
@@ -124,10 +135,12 @@ export class GasTransition {
         uTime: { value: 0 },
         uAspect: { value: new THREE.Vector2(1, 1) },
         uEdgeColor: { value: new THREE.Color(0x9fd8ff) },
-        // kept modest on purpose: a white-out would hide the match cut, and the
-        // shape carrying across is the entire point of the transition
-        uEdgeStrength: { value: 1.45 },
-        uScale: { value: 2.6 },
+        // the edge is a filament now (see frag), so it can carry real intensity
+        // without becoming a wash — bright where it burns, black where it doesn't
+        uEdgeStrength: { value: 2.6 },
+        // finer than the advection field: the break-up should read as filigree
+        // burning through the frame, not as a handful of large blobs igniting
+        uScale: { value: 4.2 },
       },
     });
 
