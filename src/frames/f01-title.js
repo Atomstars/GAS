@@ -267,6 +267,7 @@ export async function createTitleFrame({ scene, camera, rig, range: [P0, P1], ma
       varying float vTint;
       varying float vGlow;
       varying float vDepth;
+      varying float vShrink;
 
       void main() {
         float t = uTime;
@@ -302,9 +303,17 @@ export async function createTitleFrame({ scene, camera, rig, range: [P0, P1], ma
            scale to cover the screen, and 200k of those is a fill-rate
            cliff, not a look. */
         float sizeMul = mix(3.4, 1.0, uCondense);
-        gl_PointSize = clamp(
-          aScale * uSize * sizeMul * uPixelRatio * (58.0 / max(-mv.z, 0.001)),
-          0.0, 34.0 * uPixelRatio);
+        float want = aScale * uSize * sizeMul * uPixelRatio * (58.0 / max(-mv.z, 0.001));
+        float got  = clamp(want, 1.0, 34.0 * uPixelRatio);
+        gl_PointSize = got;
+
+        /* Energy conservation. A point smaller than a pixel still gets
+           drawn as a whole pixel, so once the word is far away — a narrow
+           phone in portrait, say — every point covers more area than it
+           should and the additive stack blows out to white. Scale the
+           brightness by how much bigger the drawn point is than the one
+           we asked for, and the exposure holds at any distance. */
+        vShrink = clamp((want * want) / (got * got), 0.0, 1.0);
 
         vTint  = aTint;
         vGlow  = uCondense;
@@ -316,6 +325,7 @@ export async function createTitleFrame({ scene, camera, rig, range: [P0, P1], ma
       varying float vTint;
       varying float vGlow;
       varying float vDepth;
+      varying float vShrink;
 
       void main() {
         vec2 d = gl_PointCoord - 0.5;
@@ -342,7 +352,7 @@ export async function createTitleFrame({ scene, camera, rig, range: [P0, P1], ma
 
         /* big soft points overlap far more, so the gas state needs much
            less energy per point to sit at the same exposure */
-        float o = a * uOpacity * uGain * mix(0.20, 1.0, vGlow);
+        float o = a * uOpacity * uGain * vShrink * mix(0.20, 1.0, vGlow);
         gl_FragColor = vec4(col * o, o);
       }
     `,
