@@ -2,48 +2,65 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>GAS — Akash</title>
 <meta name="description" content="GAS — the work of Akash. A film, not a page." />
-<meta name="theme-color" content="#01010a" />
+<meta name="theme-color" content="#02030a" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
 <canvas id="stage"></canvas>
-
-<!-- projection warm-up -->
 <div id="boot"><span></span></div>
 
-<!-- FRAME 01 — type sits under the word, inside the letterbox safe area -->
+<!-- FRAME 01 -->
 <div id="hud">
   <p class="line tagline">A · K · A · S · H&nbsp;&nbsp;—&nbsp;&nbsp;Sanskrit for <em>the sky</em></p>
   <p class="line sub">Everything begins as gas.</p>
-  <div class="line hint">
-    <span class="hint-text">SCROLL&nbsp;TO&nbsp;TRAVEL</span>
-    <span class="hint-rule"></span>
+  <div class="line hint"><span class="hint-text">SCROLL&nbsp;TO&nbsp;TRAVEL</span><span class="hint-rule"></span></div>
+</div>
+
+<!-- FRAME 02 -->
+<div id="craft">
+  <p class="tagline">WHAT&nbsp;I&nbsp;DO</p>
+  <h2>I build systems that do the work.</h2>
+  <p class="sub">Autonomous agents that hunt while you sleep. Models that read a
+     market before it moves. Whole products wired end to end — the interface,
+     the logic, and the automation underneath it.</p>
+  <p class="sub dim">Six of them below. Each one a problem that didn’t have a good answer yet.</p>
+</div>
+
+<!-- FRAMES 03–08 -->
+<div id="panel">
+  <div class="p-head">
+    <span id="p-index">01 / 06</span>
+    <span id="p-kind"></span>
   </div>
+  <p id="p-desc"></p>
+  <div id="p-tags" class="tags"></div>
+  <a id="p-link" href="#" target="_blank" rel="noopener">VIEW&nbsp;THE&nbsp;BUILD&nbsp;↗</a>
 </div>
 
-<!-- END OF THE BUILT ROUTE (Phase 1) -->
+<!-- END -->
 <div id="endcard">
-  <p class="tagline">FRAME 01 · GAS</p>
-  <h2>The route continues.</h2>
-  <p class="sub">The remaining frames — the craft, the work, and every project
-     as its own world — are being shot next.</p>
-  <p class="hint-text back">scroll back up to run the frame again</p>
+  <p class="tagline">END&nbsp;OF&nbsp;THE&nbsp;ROUTE</p>
+  <h2>Let’s build yours.</h2>
+  <div class="end-links">
+    <a href="mailto:govada.akash@gmail.com">GOVADA.AKASH@GMAIL.COM</a>
+    <a href="https://github.com/Atomstars" target="_blank" rel="noopener">GITHUB&nbsp;↗</a>
+  </div>
+  <p class="hint-text back">scroll back up to run the film again</p>
 </div>
 
-<!-- passive progress; there is nothing to click in this film -->
 <div id="rail"><div id="rail-line"><div id="rail-fill"></div></div></div>
 
 <div id="cursor"></div>
 <div id="cursor-dot"></div>
 
-<noscript><p style="color:#eaf0ff;padding:24px;font-family:sans-serif">GAS is a real-time WebGL film. Please enable JavaScript.</p></noscript>
+<noscript><p style="color:#eef3ff;padding:24px;font-family:sans-serif">GAS is a real-time WebGL film. Please enable JavaScript.</p></noscript>
 
 <script type="module" src="/src/main.js"></script>
 </body>

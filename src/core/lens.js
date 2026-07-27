@@ -24,12 +24,14 @@ const FinalComposite = {
     tDiffuse:     { value: null },
     uTime:        { value: 0 },
     uResolution:  { value: new THREE.Vector2(1, 1) },
-    uAberration:  { value: 1.0 },
-    uDistortion:  { value: 0.055 },
-    uStreak:      { value: 0.55 },
+    uAberration:  { value: 0.55 },
+    uDistortion:  { value: 0.030 },
+    uStreak:      { value: 0.42 },
     uStreakTint:  { value: new THREE.Color(0.30, 0.68, 1.7) },
-    uVignette:    { value: 1.0 },
-    uGrain:       { value: 0.055 },
+    uVignette:    { value: 0.9 },
+    /* Grain is kept low deliberately. The subject here is polished
+       geometry, and heavy grain reads as softness, not as film. */
+    uGrain:       { value: 0.022 },
     uBars:        { value: 0.10 },
     uExposure:    { value: 1.0 },
     uContrast:    { value: 1.06 },
@@ -137,10 +139,12 @@ export class Lens {
     this.composer = new EffectComposer(renderer);
     this.composer.addPass(new RenderPass(scene, camera));
 
+    /* Shallow depth of field, not a soft filter — the letterforms must
+       stay razor sharp at the focal plane. */
     this.bokeh = new BokehPass(scene, camera, {
       focus: 20.0,
-      aperture: 0.00075,
-      maxblur: 0.012,
+      aperture: 0.00055,
+      maxblur: 0.0075,
     });
     this.composer.addPass(this.bokeh);
 
@@ -148,7 +152,10 @@ export class Lens {
        to *highlights*, not a haze over the whole image. Drop the threshold
        and the blacks go milky, which is the single fastest way to make a
        real-time scene look cheap. */
-    this.bloom = new UnrealBloomPass(size, 0.70, 0.70, 0.60);
+    /* Threshold sits high because the subject is polished metal: a
+       chrome highlight is many times brighter than white paper, and a
+       low threshold turns the whole frame into a milky glow. */
+    this.bloom = new UnrealBloomPass(size, 0.30, 0.45, 1.25);
     this.composer.addPass(this.bloom);
 
     const output = new OutputPass();

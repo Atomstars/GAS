@@ -4,130 +4,105 @@ import gsap from 'gsap';
 import { Lens } from './core/lens.js';
 import { CameraRig } from './core/rig.js';
 import { Director } from './core/director.js';
+import { Pointer } from './core/pointer.js';
+import { loadFont } from './core/text3d.js';
+import { SHARED } from './core/material.js';
+import { PROJECTS, repoUrl } from './data/projects.js';
 import { createTitleFrame } from './frames/f01-title.js';
+import { createCraftFrame } from './frames/f02-craft.js';
+import { createProjectFrames } from './frames/f03-projects.js';
 
 /* ==================================================================
    GAS — one continuous take.
-   main.js owns nothing but the wiring: a stage, a lens, a rig, a
-   director, and an ordered list of frames. Every frame is a pure
-   function of journey progress P, so the film can be scrubbed in
-   either direction and always looks identical at the same P.
+   Everything is a pure function of journey progress P ∈ [0,1].
+   Nothing is clicked. Scroll travels; the pointer disturbs.
 ================================================================== */
 
 const canvas = document.getElementById('stage');
-
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: true,
-  powerPreference: 'high-performance',
-  stencil: false,
-});
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', stencil: false });
 renderer.setSize(innerWidth, innerHeight);
 
-/* Heavy vertex work — cap the pixel ratio and let the lens do the
-   perceived resolution via bloom and grain rather than raw pixels. */
 let pixelRatio = Math.min(devicePixelRatio, 1.75);
 renderer.setPixelRatio(pixelRatio);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x01010a);
+scene.background = new THREE.Color(0x02030a);
 
-const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 800);
+const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 1400);
 
 const lens = new Lens(renderer, scene, camera);
 const rig = new CameraRig(camera);
 const director = new Director();
-
-/* ------------------------------------------------------------------
-   FRAME MAP
-   Phase 1 ships frame 01. The remaining frames slot into this table
-   and the rig, lens and director are already built to carry them.
------------------------------------------------------------------- */
-const TITLE_RANGE = [0.00, 0.72];
-const VOID_RANGE  = [0.78, 1.00];
+const pointer = new Pointer(camera);
 
 const coarse = matchMedia('(pointer: coarse)').matches;
 const q = new URLSearchParams(location.search);
-const particleBudget = Number(q.get('p')) || (coarse ? 70000 : 220000);
+const particleBudget = Number(q.get('p')) || (coarse ? 45000 : 120000);
+
+/* ---------------- the route ---------------- */
+const R_TITLE   = [0.000, 0.130];
+const R_CRAFT   = [0.155, 0.300];
+const R_PROJECT = [0.330, 0.940];
+const R_END     = [0.955, 1.000];
+const CRAFT_Z = -95, PROJ_START_Z = -215, PROJ_STEP_Z = 105;
 
 const frames = [];
-let title = null;
+let title = null, craft = null, projectFrames = [];
+
+/* Frame boundaries — the moments the film changes place. */
+const BOUNDS = [R_TITLE[1], R_CRAFT[0], R_CRAFT[1], R_PROJECT[0]];
 
 async function boot() {
+  await loadFont();
+
   title = await createTitleFrame({
-    scene,
-    camera,
-    rig,
-    range: TITLE_RANGE,
-    maxParticles: particleBudget,
+    scene, camera, renderer, rig, pointer,
+    range: R_TITLE, maxParticles: particleBudget,
   });
   frames.push(title);
 
-  /* the take keeps moving after the word comes apart — the camera never
-     cuts, it just keeps falling forward into the dark */
+  craft = createCraftFrame({
+    scene, renderer, rig, pointer,
+    range: R_CRAFT, center: new THREE.Vector3(0, 0, CRAFT_Z),
+  });
+  frames.push(craft);
+
+  projectFrames = createProjectFrames({
+    scene, camera, renderer, rig, pointer, projects: PROJECTS,
+    range: R_PROJECT, startZ: PROJ_START_Z, stepZ: PROJ_STEP_Z,
+  });
+  frames.push(...projectFrames);
+  projectFrames.forEach(f => BOUNDS.push(f.p0));
+
+  /* the take keeps falling forward after the last project */
+  const lastZ = PROJ_START_Z - (PROJECTS.length - 1) * PROJ_STEP_Z;
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   rig
-    .key(0.86, { pos: V(2.0, 1.4, -22), look: V(0, 0, -80), roll: 0.014, fov: 52, focus: 46 })
-    .key(1.00, { pos: V(0.0, 2.2, -48), look: V(0, 0, -120), roll: 0.000, fov: 48, focus: 70, hold: true });
+    .key(0.965, { pos: V(0, 6, lastZ - 70),  look: V(0, 0, lastZ - 150), roll: 0.010, fov: 50, focus: 60 })
+    .key(1.000, { pos: V(0, 10, lastZ - 118), look: V(0, -2, lastZ - 220), roll: 0, fov: 47, focus: 90, hold: true });
 
-  title.onFormed = () => {
-    /* Tween a value, not the element. The reveal and the scroll both want
-       to own this opacity; multiplying two numbers we control means they
-       can never fight, and an early scroll still clears the card. */
-    gsap.to(hudState, { reveal: 1, duration: 1.6, ease: 'power2.out' });
-    gsap.fromTo('#hud .line',
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 1.4, stagger: 0.28, ease: 'power3.out' });
+  title.onFormed = () => gsap.to(hudState, { reveal: 1, duration: 1.5, ease: 'power2.out' });
+  title.onSet = () => {
+    gsap.fromTo('#hud .line', { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 1.2, stagger: 0.24, ease: 'power3.out' });
   };
 
-  /* the projection starts: black, closed bars, then the aperture opens */
   document.getElementById('boot')?.classList.add('gone');
   lens.bars = 0.5;
   lens.fade = 1;
   gsap.timeline()
-    .to(lens, { fade: 0, duration: 2.0, ease: 'power2.inOut' })
-    .to(lens, { bars: 0.085, duration: 2.2, ease: 'power4.inOut' }, 0.15);
-
-  director.beat('title', ...TITLE_RANGE, {
-    onUpdate: t => {
-      /* the anamorphic streak opens up as the word blows apart */
-      lens.streak = 0.5 + t * 0.5;
-    },
-  });
-
-  const endcard = document.getElementById('endcard');
-  director.beat('void', ...VOID_RANGE, {
-    onEnter: () => endcard.classList.add('on'),
-    onExit:  () => endcard.classList.remove('on'),
-  });
+    .to(lens, { fade: 0, duration: 1.8, ease: 'power2.inOut' })
+    .to(lens, { bars: 0.075, duration: 2.0, ease: 'power4.inOut' }, 0.15);
 
   window.GAS.ready = true;
 }
 
-/* ------------------------------------------------------------------
-   POINTER — parallax + custom cursor. No click targets in the film.
------------------------------------------------------------------- */
-addEventListener('pointermove', e => {
-  rig.setPointer(
-    (e.clientX / innerWidth) * 2 - 1,
-    -((e.clientY / innerHeight) * 2 - 1),
-  );
-  px = e.clientX; py = e.clientY;
-}, { passive: true });
-
-const cur = document.getElementById('cursor');
-const dot = document.getElementById('cursor-dot');
-let px = innerWidth / 2, py = innerHeight / 2, cx = px, cy = py;
-document.addEventListener('pointerover', e => {
-  cur.classList.toggle('hot', !!e.target.closest('a'));
-});
-
-/* ------------------------------------------------------------------
-   THE PROJECTOR
------------------------------------------------------------------- */
-const clock = new THREE.Clock();
+/* ---------------- DOM ---------------- */
+const hudEl    = document.getElementById('hud');
+const craftEl  = document.getElementById('craft');
+const panelEl  = document.getElementById('panel');
+const endEl    = document.getElementById('endcard');
 const railFill = document.getElementById('rail-fill');
-const hudEl = document.getElementById('hud');
 const hudState = { reveal: 0 };
 
 const smoothstep = (e0, e1, x) => {
@@ -135,45 +110,96 @@ const smoothstep = (e0, e1, x) => {
   return t * t * (3 - 2 * t);
 };
 
+let shownProject = -1;
+function setProjectPanel(i) {
+  if (i === shownProject) return;
+  shownProject = i;
+  if (i < 0) { panelEl.classList.remove('on'); return; }
+  const p = PROJECTS[i];
+  document.getElementById('p-index').textContent = `${String(i + 1).padStart(2, '0')} / ${String(PROJECTS.length).padStart(2, '0')}`;
+  document.getElementById('p-kind').textContent = p.kind;
+  document.getElementById('p-desc').textContent = p.desc;
+  document.getElementById('p-tags').innerHTML = p.tags.map(t => `<i>${t}</i>`).join('');
+  const link = document.getElementById('p-link');
+  link.href = repoUrl(p);
+  panelEl.classList.add('on');
+  gsap.fromTo(panelEl, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' });
+}
+
+/* ---------------- projector ---------------- */
+const clock = new THREE.Clock();
 let fpsAcc = 0, fpsFrames = 0, degraded = false;
 
 function tick() {
   requestAnimationFrame(tick);
-
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
 
   const P = director.update(dt);
+  pointer.update(dt);
+
   const focus = rig.update(P, dt, t);
+  rig.setPointer(pointer.smooth.x, pointer.smooth.y);
+
+  /* the liquid surfaces all read one pointer */
+  SHARED.uTime.value = t;
+  SHARED.uPointer.value.copy(pointer.world);
+  SHARED.uPointerAmp.value = pointer.rippleAmp;
 
   for (const f of frames) f.update(P, dt, t);
 
-  /* --- the lens reacts to speed: travel fast and it stretches --- */
+  /* --- which frame owns the pointer's focus plane --- */
+  let active = title;
+  for (const f of projectFrames) if (P >= f.p0 && P <= f.p1) active = f;
+  if (P > R_CRAFT[0] && P < R_CRAFT[1]) active = craft;
+  pointer.setFocusPlane(active?.focusPlane ?? 0);
+
+  /* --- THE SHIFT ---
+     Crossing between frames is an event, not a dissolve: the surfaces
+     go momentarily molten and the lens flares and stretches. It scales
+     with how hard the viewer is travelling, so a slow scroll gets a
+     gentle handover and a fast one gets a jolt. */
+  let nearBoundary = 0;
+  for (const b of BOUNDS) nearBoundary = Math.max(nearBoundary, 1 - smoothstep(0, 0.030, Math.abs(P - b)));
   const speed = Math.min(1, Math.abs(director.velocity) * 2.2);
+  const shift = nearBoundary * (0.25 + speed * 0.75);
+
+  SHARED.uMelt.value = shift * 1.5;
+
   lens.focus = focus;
-  lens.aperture = 0.00062 + speed * 0.0011;
-  lens.bloomStrength = 0.70 + speed * 0.50;
-  lens.aberration = 0.85 + speed * 2.4;
-  rig.breath = 0.5 + speed * 0.9;
+  lens.aperture = 0.00055 + speed * 0.0009;
+  lens.bloomStrength = 0.30 + speed * 0.22 + shift * 0.55;
+  lens.aberration = 0.55 + speed * 1.6 + shift * 3.4;
+  lens.streak = 0.42 + shift * 0.85;
+  rig.breath = 0.42 + speed * 0.8;
+  if (shift > 0.85 && speed > 0.55) rig.impulse(0.05);
 
-  /* --- cursor --- */
-  cx += (px - cx) * 0.16; cy += (py - cy) * 0.16;
-  cur.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
-  dot.style.transform = `translate(${px}px, ${py}px) translate(-50%, -50%)`;
+  /* --- DOM --- */
+  hudEl.style.opacity = String(hudState.reveal * (1 - smoothstep(0.012, 0.10, P)));
+  craftEl.style.opacity = String(
+    smoothstep(R_CRAFT[0] + 0.012, R_CRAFT[0] + 0.055, P) * (1 - smoothstep(R_CRAFT[1] - 0.05, R_CRAFT[1], P))
+  );
+  craftEl.classList.toggle('on', P > R_CRAFT[0] && P < R_CRAFT[1]);
 
-  /* The title card is a title card: it belongs to the held frame, and
-     it clears the moment the viewer starts travelling. */
-  hudEl.style.opacity = String(hudState.reveal * (1 - smoothstep(0.015, 0.12, P)));
+  let pi = -1;
+  for (let i = 0; i < projectFrames.length; i++) {
+    const f = projectFrames[i];
+    if (P >= f.p0 + (f.p1 - f.p0) * 0.06 && P <= f.p1 - (f.p1 - f.p0) * 0.10) pi = i;
+  }
+  setProjectPanel(pi);
+
+  const endOp = smoothstep(R_END[0], R_END[0] + 0.03, P);
+  endEl.style.opacity = String(endOp);
+  endEl.classList.toggle('on', endOp > 0.5);
 
   railFill.style.height = (P * 100).toFixed(2) + '%';
 
   lens.render(t);
 
-  /* --- adaptive quality: protect the frame rate before the pixels --- */
   if (!degraded) {
     fpsAcc += dt; fpsFrames++;
-    if (fpsAcc > 3) {
-      if (fpsFrames / fpsAcc < 40 && pixelRatio > 1) {
+    if (fpsAcc > 3.5) {
+      if (fpsFrames / fpsAcc < 38 && pixelRatio > 1) {
         pixelRatio = 1;
         renderer.setPixelRatio(pixelRatio);
         lens.setSize(innerWidth, innerHeight);
@@ -184,24 +210,22 @@ function tick() {
   }
 }
 
-function resize() {
+addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   lens.setSize(innerWidth, innerHeight);
-}
-addEventListener('resize', resize);
-
-boot().then(tick).catch(err => {
-  console.error(err);
-  document.getElementById('boot')?.classList.add('failed');
 });
 
-/* expose for tuning from the console while grading the look */
 window.GAS = {
-  lens, rig, director, scene, camera, renderer, frames, gsap,
+  lens, rig, director, pointer, scene, camera, renderer, frames, gsap, SHARED,
   get title() { return title; },
-  /* jump straight to a point in the journey, no easing */
   seek(p) { director.targetP = p; director.P = p; },
   ready: false,
 };
+
+boot().then(tick).catch(err => {
+  console.error(err);
+  const b = document.getElementById('boot');
+  if (b) { b.classList.add('failed'); b.textContent = 'failed — ' + err.message; }
+});
