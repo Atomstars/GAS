@@ -22,11 +22,44 @@ const canvas = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', stencil: false });
 renderer.setSize(innerWidth, innerHeight);
 
+/* Shadows are the difference between an object and a scene. Without one
+   a form hovers with no relationship to the ground and reads as a
+   render no matter how good the material is. */
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
 let pixelRatio = Math.min(devicePixelRatio, 1.75);
 renderer.setPixelRatio(pixelRatio);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x02030a);
+
+/* Air. Distance has to cost something or every depth reads the same. */
+scene.fog = new THREE.FogExp2(0x05070f, 0.0090);
+const fogBase = new THREE.Color(0x05070f);
+const fogTint = new THREE.Color();
+
+/* One shadow-casting key that travels to whichever frame is on screen —
+   six lights would be six shadow maps for one visible subject. */
+const keyLight = new THREE.DirectionalLight(0xdce8ff, 2.9);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024, 1024);
+keyLight.shadow.camera.near = 1;
+keyLight.shadow.camera.far = 120;
+keyLight.shadow.camera.left = -34;
+keyLight.shadow.camera.right = 34;
+keyLight.shadow.camera.top = 34;
+keyLight.shadow.camera.bottom = -34;
+keyLight.shadow.bias = -0.0012;
+keyLight.shadow.normalBias = 0.045;
+scene.add(keyLight);
+scene.add(keyLight.target);
+
+/* Fill, no shadow. Without it the faces turned away from the key read as
+   pure black holes and the form stops being legible as an object. */
+const fillLight = new THREE.DirectionalLight(0x6f9bd8, 0.9);
+scene.add(fillLight);
+scene.add(fillLight.target);
 
 const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 1400);
 
@@ -110,6 +143,12 @@ const smoothstep = (e0, e1, x) => {
   return t * t * (3 - 2 * t);
 };
 
+const activeAccent = new THREE.Color(0x0a1830);
+const ACCENT_BY_ID = {
+  davina: 0x123a5e, gmat: 0x14384e, 'job-agent': 0x3a2412,
+  'cafe-pos': 0x3a2a12, housing: 0x123a2a, buddy: 0x2a1a3e,
+};
+
 let shownProject = -1;
 function setProjectPanel(i) {
   if (i === shownProject) return;
@@ -128,6 +167,7 @@ function setProjectPanel(i) {
 
 /* ---------------- projector ---------------- */
 const clock = new THREE.Clock();
+const _tmpCol = new THREE.Color();
 let fpsAcc = 0, fpsFrames = 0, degraded = false;
 
 function tick() {
@@ -146,9 +186,7 @@ function tick() {
   SHARED.uPointer.value.copy(pointer.world);
   SHARED.uPointerAmp.value = pointer.rippleAmp;
 
-  for (const f of frames) f.update(P, dt, t);
-
-  /* --- which frame owns the pointer's focus plane --- */
+  /* --- which frame is on screen --- */
   let active = title;
   for (const f of projectFrames) if (P >= f.p0 && P <= f.p1) active = f;
   if (P > R_CRAFT[0] && P < R_CRAFT[1]) active = craft;
@@ -166,6 +204,25 @@ function tick() {
 
   SHARED.uMelt.value = shift * 1.5;
 
+  for (const f of frames) f.update(P, dt, t, shift);
+
+  /* the key travels to the active frame so its shadow map stays tight */
+  if (active?.group) {
+    const c = active.group.position;
+    keyLight.position.set(c.x - 16, c.y + 34, c.z + 20);
+    keyLight.target.position.set(c.x, c.y - 6, c.z);
+    keyLight.target.updateMatrixWorld();
+    keyLight.intensity = 2.9 + shift * 1.8;
+    fillLight.position.set(c.x + 22, c.y + 6, c.z + 26);
+    fillLight.target.position.set(c.x, c.y, c.z);
+    fillLight.target.updateMatrixWorld();
+  }
+
+  /* air takes the colour of the room it is in */
+  fogTint.copy(fogBase).lerp(activeAccent, 0.32);
+  scene.fog.color.copy(fogTint);
+  scene.background.copy(fogTint).multiplyScalar(0.42);
+
   lens.focus = focus;
   lens.aperture = 0.00055 + speed * 0.0009;
   lens.bloomStrength = 0.30 + speed * 0.22 + shift * 0.55;
@@ -180,6 +237,10 @@ function tick() {
     smoothstep(R_CRAFT[0] + 0.012, R_CRAFT[0] + 0.055, P) * (1 - smoothstep(R_CRAFT[1] - 0.05, R_CRAFT[1], P))
   );
   craftEl.classList.toggle('on', P > R_CRAFT[0] && P < R_CRAFT[1]);
+
+  activeAccent.lerp(
+    _tmpCol.setHex(active && active.project ? (ACCENT_BY_ID[active.project.id] ?? 0x0a1830) : 0x0a1830),
+    1 - Math.exp(-dt * 1.6));
 
   let pi = -1;
   for (let i = 0; i < projectFrames.length; i++) {

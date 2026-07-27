@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeTextGeometry } from '../core/text3d.js';
 import { buildEnvironment, FINISH } from '../core/material.js';
+import { makeStage } from '../core/stage.js';
 
 /* ==================================================================
    FRAMES 03–08 — THE WORK
@@ -206,13 +207,22 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
     scene.add(group);
 
     const form = FORMS[proj.id](mat);
+    form.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     group.add(form);
+
+    const stage = makeStage({
+      envMap, accent: acc.a,
+      groundY: -15, groundSize: 165,
+      shafts: 3, shaftIntensity: 0.28, dust: 380, dustSpread: 58,
+    });
+    group.add(stage.group);
 
     /* the name is geometry too — DOM type over 3D is what makes a site
        look like a website with a 3D background instead of a film */
     const nameGeo = makeTextGeometry(proj.name, { width: 19, depth: 0.8, quality: 'low' });
     const name = new THREE.Mesh(nameGeo, mat);
-    name.position.set(0, -12.6, 7);
+    /* clear of the letterbox bar, and clear of the floor it stands on */
+    name.position.set(0, -10.2, 7);
     group.add(name);
 
     const p0 = P0 + i * span, p1 = p0 + span;
@@ -234,14 +244,16 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
       p0, p1,
       focusPlane: center.z,
 
-      update(P, dt, t) {
+      update(P, dt, t, sweep = 0) {
         const local = (P - p0) / span;
         const vis = THREE.MathUtils.smoothstep(local, -0.16, 0.10)
                   * (1 - THREE.MathUtils.smoothstep(local, 0.90, 1.14));
         group.visible = vis > 0.003;
         if (!group.visible) return;
+        name.castShadow = true;
 
         mat.opacity = vis;
+        stage.update(t, vis, sweep);
         form.userData.tick?.(t);
         form.rotation.y += pointer.smooth.x * 0.0016;
         group.rotation.y = pointer.smooth.x * 0.12;

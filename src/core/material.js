@@ -133,12 +133,15 @@ export function buildEnvironment(renderer, {
   };
 
   const H = Math.PI / 2;
-  bar(60, 9,  [0, 26, -6],  [H, 0, 0],       0xffffff, key);
-  bar(46, 5,  [0, -22, 4],  [-H, 0, 0],      0xbfd4ff, key * 0.31);
-  bar(7, 52,  [-30, 2, 6],  [0, H, 0],       accentA,  accentPower);
-  bar(7, 52,  [30, 0, 6],   [0, -H, 0],      accentB,  accentPower * 0.82);
-  bar(30, 16, [0, 6, -40],  [0, 0, 0],       0xffffff, key * 0.36);
-  bar(14, 40, [-14, 8, 34], [0, Math.PI, 0], 0xffffff, key * 0.48);
+  /* Narrow strips, not broad panels. A wide soft source turns metal into
+     flat grey; a narrow one draws a hard line along an edge, which is
+     what reads as machined rather than plastic. */
+  bar(52, 3.5, [0, 26, -6],  [H, 0, 0],       0xffffff, key);
+  bar(40, 2.5, [0, -22, 4],  [-H, 0, 0],      0xbfd4ff, key * 0.26);
+  bar(3.5, 52, [-30, 2, 6],  [0, H, 0],       accentA,  accentPower);
+  bar(3.5, 52, [30, 0, 6],   [0, -H, 0],      accentB,  accentPower * 0.78);
+  bar(26, 9,   [0, 6, -40],  [0, 0, 0],       0xffffff, key * 0.28);
+  bar(6, 40,   [-14, 8, 34], [0, Math.PI, 0], 0xffffff, key * 0.42);
 
   const tex = pmrem.fromScene(env, 0.03).texture;
   pmrem.dispose();
@@ -146,13 +149,29 @@ export function buildEnvironment(renderer, {
   return tex;
 }
 
-/* The three finishes the film uses. Chrome for the title, glass and
-   mercury for variation across the project worlds. */
+/* The finishes the film uses.
+
+   `obsidian` is the house material. Mirror chrome was the wrong call:
+   a full mirror blows whole faces to flat white, and white-hot metal
+   with rainbow rims is the exact look of cheap 3D type. Dark satin
+   metal keeps the blacks black and lets a highlight be a precise line
+   along a bevel — which is what expensive product photography does. */
 export const FINISH = {
+  obsidian: (envMap) => makeLiquid(new THREE.MeshPhysicalMaterial({
+    color: 0x0d1017, metalness: 0.94, roughness: 0.235,
+    envMap, envMapIntensity: 0.95,
+    clearcoat: 1.0, clearcoatRoughness: 0.16,
+  }), { ripple: 0.26, swell: 0.045 }),
+
+  graphite: (envMap) => makeLiquid(new THREE.MeshPhysicalMaterial({
+    color: 0x1b2028, metalness: 1.0, roughness: 0.34,
+    envMap, envMapIntensity: 0.9,
+  }), { ripple: 0.34, swell: 0.06 }),
+
   chrome: (envMap) => makeLiquid(new THREE.MeshPhysicalMaterial({
-    color: 0xffffff, metalness: 1.0, roughness: 0.055,
-    envMap, envMapIntensity: 1.15, clearcoat: 1.0, clearcoatRoughness: 0.08,
-  }), { ripple: 0.52, swell: 0.095 }),
+    color: 0xdfe6f2, metalness: 1.0, roughness: 0.14,
+    envMap, envMapIntensity: 0.85, clearcoat: 1.0, clearcoatRoughness: 0.12,
+  }), { ripple: 0.40, swell: 0.075 }),
 
   glass: (envMap) => makeLiquid(new THREE.MeshPhysicalMaterial({
     color: 0x0a0d18, metalness: 0.0, roughness: 0.035,

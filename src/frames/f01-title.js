@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { SIMPLEX_3D, FLOW_FIELD } from '../shaders/noise.js';
 import { makeTextGeometry, sampleSurface } from '../core/text3d.js';
 import { buildEnvironment, FINISH, SHARED } from '../core/material.js';
+import { makeStage } from '../core/stage.js';
 
 /* ==================================================================
    FRAME 01 — GAS
@@ -27,13 +28,23 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
   const envMap = buildEnvironment(renderer, { accentA: 0x59e2ff, accentB: 0xff5fd2, key: 3.4 });
   const geo = makeTextGeometry('GAS', { width: WIDTH, depth: DEPTH, quality: 'high' });
 
-  const solidMat = FINISH.chrome(envMap);
+  const solidMat = FINISH.obsidian(envMap);
   solidMat.transparent = true;
   solidMat.opacity = 0;
   const solid = new THREE.Mesh(geo, solidMat);
   solid.position.y = RISE;
   solid.visible = false;
+  solid.castShadow = true;
+  solid.receiveShadow = true;
   group.add(solid);
+
+  /* the room it stands in */
+  const stage = makeStage({
+    envMap, accent: 0x6fd8ff,
+    groundY: -11, groundSize: 190,
+    shafts: 4, shaftIntensity: 0.34, dust: 520, dustSpread: 70,
+  });
+  group.add(stage.group);
 
   /* ---------------- the gas ---------------- */
   const N = Math.min(maxParticles, 200000);
@@ -161,7 +172,7 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
     _f: false, _s: false,
     focusPlane: 0,
 
-    update(P, dt, t) {
+    update(P, dt, t, sweep = 0) {
       gasMat.uniforms.uTime.value = t;
 
       revealT += dt;
@@ -194,6 +205,7 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
       solid.position.z = -out * 26;
 
       group.visible = local < 0.999;
+      stage.update(t, (1 - out) * Math.max(s, 0.25), sweep);
       this.focusPlane = 0;
 
       /* Responsive framing — hold the word inside any screen shape.
@@ -203,7 +215,7 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
          through the whole hero beat and only release as the camera
          starts its push-through, or the word grows off-frame early. */
       const halfFov = THREE.MathUtils.degToRad(camera.fov * 0.5);
-      const byW = (WIDTH * 0.72) / (Math.tan(halfFov) * camera.aspect);
+      const byW = (WIDTH * 0.78) / (Math.tan(halfFov) * camera.aspect);
       const byH = (WIDTH * 0.34) / Math.tan(halfFov);
       const fit = Math.max(0, Math.max(byW, byH) - BASE_DIST)
                 * (1 - THREE.MathUtils.smoothstep(local, 0.30, 0.80));
@@ -213,7 +225,7 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
       rig.fovOffset = (1 - c) * 12;
     },
 
-    setPixelRatio(pr) { gasMat.uniforms.uPixelRatio.value = pr; },
+    setPixelRatio(pr) { gasMat.uniforms.uPixelRatio.value = pr; stage.setPixelRatio(pr); },
     seekReveal(v) { revealT = DELAY + THREE.MathUtils.clamp(v, 0, 1) * (CONDENSE_DUR + SET_DUR); },
     get particleCount() { return N; },
   };

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildEnvironment, FINISH } from '../core/material.js';
+import { makeStage } from '../core/stage.js';
 
 /* ==================================================================
    FRAME 02 — THE CRAFT
@@ -15,7 +16,7 @@ export function createCraftFrame({ scene, renderer, rig, pointer, range: [P0, P1
   scene.add(group);
 
   const envMap = buildEnvironment(renderer, { accentA: 0x7b5cff, accentB: 0x28e0ff, key: 3.6 });
-  const mat = FINISH.chrome(envMap);
+  const mat = FINISH.obsidian(envMap);
   mat.transparent = true;
   mat.opacity = 0;
 
@@ -24,6 +25,13 @@ export function createCraftFrame({ scene, renderer, rig, pointer, range: [P0, P1
   const molecule = new THREE.Group();
   molecule.position.x = 9;
   group.add(molecule);
+
+  const stage = makeStage({
+    envMap, accent: 0x7b5cff,
+    groundY: -13, groundSize: 170,
+    shafts: 3, shaftIntensity: 0.30, dust: 420, dustSpread: 62,
+  });
+  group.add(stage.group);
 
   const atoms = [];
   const COUNT = 15;
@@ -44,6 +52,7 @@ export function createCraftFrame({ scene, renderer, rig, pointer, range: [P0, P1
   const sphereGeo = new THREE.SphereGeometry(1, 40, 28);
   atoms.forEach((p, i) => {
     const m = new THREE.Mesh(sphereGeo, mat);
+    m.castShadow = true;
     m.position.copy(p);
     m.scale.setScalar(0.85 + ((i * 17) % 7) / 7 * 1.05);
     molecule.add(m);
@@ -77,7 +86,7 @@ export function createCraftFrame({ scene, renderer, rig, pointer, range: [P0, P1
     group,
     focusPlane: center.z,
 
-    update(P, dt, t) {
+    update(P, dt, t, sweep = 0) {
       const local = THREE.MathUtils.clamp((P - P0) / (P1 - P0), 0, 1);
       const inFade  = THREE.MathUtils.smoothstep(local, 0.0, 0.16);
       const outFade = 1 - THREE.MathUtils.smoothstep(local, 0.80, 1.0);
@@ -89,6 +98,7 @@ export function createCraftFrame({ scene, renderer, rig, pointer, range: [P0, P1
       molecule.rotation.y = t * 0.11 + pointer.smooth.x * 0.30;
       molecule.rotation.x = Math.sin(t * 0.17) * 0.11 - pointer.smooth.y * 0.18;
       molecule.scale.setScalar(0.9 + 0.1 * vis);
+      stage.update(t, vis, sweep);
     },
   };
 }
