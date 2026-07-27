@@ -1,0 +1,26 @@
+{
+  "name": "gas",
+  "version": "1.0.0",
+  "description": "GAS — a real-time cinematic portfolio. One continuous take, piloted by scroll.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Atomstars/GAS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.21"
+  },
+  "private": true,
+  "type": "module"
+}
