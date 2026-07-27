@@ -1,0 +1,325 @@
+/* GAS — overlay type layer.
+   Deliberately thin: telemetry lives in the 3D scene. This carries only what
+   type does better than geometry. */
+
+:root {
+  --ink: #e8f1ff;
+  --dim: #7d8bab;
+  --faint: #4a5470;
+  --accent: #8fd4ff;
+  --line: rgba(143, 212, 255, 0.16);
+
+  --display: 'Syncopate', 'Arial Black', sans-serif;
+  --body: 'Space Grotesk', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bar: 4.2vh;
+  --pad: clamp(20px, 4.2vw, 68px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
+
+body {
+  background: #000;
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 300;
+  overscroll-behavior: none;
+  cursor: none;
+}
+
+a { color: inherit; text-decoration: none; }
+
+#gl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+}
+
+/* the scroll track — the film has no DOM sections, only distance */
+#scroll-space { position: relative; width: 100%; pointer-events: none; }
+
+.film {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+.film a { pointer-events: auto; }
+
+/* ---------------------------- letterbox ---------------------------- */
+.bar {
+  position: fixed;
+  left: 0; right: 0;
+  height: 0;
+  background: #000;
+  z-index: 40;
+  transition: height 1.4s cubic-bezier(.2, .8, .2, 1) .3s;
+}
+.bar-t { top: 0; }
+.bar-b { bottom: 0; }
+body.ready .bar { height: var(--bar); }
+
+/* ------------------------------- hud ------------------------------- */
+#hud {
+  position: fixed;
+  top: calc(var(--bar) + clamp(16px, 2.4vh, 30px));
+  left: var(--pad);
+  right: var(--pad);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 30;
+  opacity: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+.hud-l { display: flex; align-items: center; gap: 14px; }
+.hud-l .mark {
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: .3em;
+  font-size: 13px;
+}
+.hud-l .rule { width: 26px; height: 1px; background: var(--line); }
+.hud-l .who { color: var(--dim); }
+.hud-r { color: var(--accent); }
+
+/* --------------------------- act 0 · title -------------------------- */
+#title-copy {
+  position: fixed;
+  left: 0; right: 0;
+  top: 50%;
+  transform: translateY(calc(-50% + min(19vh, 190px)));
+  text-align: center;
+  padding: 0 var(--pad);
+  z-index: 25;
+  opacity: 0;
+}
+.kicker {
+  font-family: var(--mono);
+  font-size: clamp(9px, 1.05vw, 11px);
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.kicker em { font-style: normal; color: var(--ink); }
+.lede {
+  margin-top: 18px;
+  color: var(--dim);
+  font-size: clamp(13px, 1.45vw, 17px);
+  line-height: 1.85;
+  letter-spacing: .01em;
+}
+.cue {
+  margin-top: clamp(28px, 5vh, 54px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .5em;
+  color: var(--faint);
+}
+.cue i {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(var(--accent), transparent);
+  animation: drop 2.2s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes drop {
+  0%, 100% { transform: scaleY(.35); opacity: .35; }
+  50%      { transform: scaleY(1);   opacity: 1; }
+}
+
+/* ------------------------ act II · caption ------------------------- */
+#caption {
+  position: fixed;
+  left: var(--pad);
+  bottom: calc(var(--bar) + clamp(28px, 6vh, 68px));
+  max-width: min(520px, 44vw);
+  z-index: 28;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+#caption .cat {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .38em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+#caption .name {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(24px, 3.9vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -.005em;
+  margin: 16px 0 0;
+  text-wrap: balance;
+}
+#caption .blurb {
+  margin-top: 18px;
+  color: var(--dim);
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.75;
+  max-width: 42ch;
+}
+#caption .stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+  list-style: none;
+}
+#caption .stack li {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #a9cdea;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+#caption .open {
+  display: inline-block;
+  margin-top: 26px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .28em;
+  color: var(--ink);
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+  transition: border-color .35s, color .35s;
+}
+#caption .open:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ----------------------------- rail ------------------------------- */
+#rail {
+  position: fixed;
+  right: var(--pad);
+  top: 50%;
+  transform: translateY(-50%);
+  height: 34vh;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 30;
+}
+#rail-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--faint);
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+}
+#rail-line {
+  position: relative;
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, .1);
+}
+#rail-ticks i {
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 1px;
+  background: rgba(255, 255, 255, .28);
+}
+#rail-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--accent), #dff0ff);
+  transform-origin: top;
+  transform: scaleY(0);
+  box-shadow: 0 0 12px rgba(143, 212, 255, .55);
+}
+
+/* --------------------------- act III ------------------------------ */
+#contact-copy {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 var(--pad);
+  z-index: 26;
+  opacity: 0;
+}
+.sign {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(26px, 4.4vw, 62px);
+  line-height: 1.12;
+  margin-top: 26px;
+  letter-spacing: -.01em;
+}
+.sign em { font-style: normal; color: var(--accent); }
+.links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 40px; }
+.cta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .16em;
+  padding: 15px 30px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ink);
+  transition: background .35s, border-color .35s, color .35s;
+}
+.cta:hover { background: var(--accent); border-color: var(--accent); color: #04070f; }
+.cta.ghost { color: var(--dim); }
+.cta.ghost:hover { color: #04070f; }
+.foot {
+  margin-top: 40px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---------------------------- cursor ------------------------------ */
+#cursor {
+  position: fixed;
+  top: 0; left: 0;
+  width: 26px; height: 26px;
+  border: 1px solid rgba(143, 212, 255, .55);
+  border-radius: 50%;
+  z-index: 100;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: width .3s, height .3s, border-color .3s, background .3s;
+}
+#cursor.hot {
+  width: 52px; height: 52px;
+  border-color: var(--accent);
+  background: rgba(143, 212, 255, .1);
+}
+
+/* --------------------------- responsive --------------------------- */
+@media (pointer: coarse), (max-width: 820px) {
+  #cursor { display: none; }
+  body { cursor: auto; }
+  #rail { display: none; }
+  #caption { max-width: none; right: var(--pad); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cue i { animation: none; }
+  .bar { transition: none; }
+}

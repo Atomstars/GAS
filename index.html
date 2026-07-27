@@ -3,69 +3,72 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GAS — Akash · A Journey Through My Galaxy</title>
-<meta name="description" content="GAS — travel through the galaxy of Akash. Every planet is a project." />
+<title>GAS — Akash</title>
+<meta name="description" content="GAS — Akash. Cinematic products: AI agents, full-stack systems, and interfaces that move." />
+<meta name="theme-color" content="#000000" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-<canvas id="bg"></canvas>
-<canvas id="grain"></canvas>
-<div id="bar-top" class="bar"></div>
-<div id="bar-bot" class="bar"></div>
+<canvas id="gl"></canvas>
+<div id="scroll-space" aria-hidden="true"></div>
 
-<div id="cursor"></div>
-<div id="cursor-dot"></div>
+<div class="film">
 
-<!-- INTRO (fades as you begin to travel) -->
-<div id="intro">
-  <canvas id="gas-canvas"></canvas>
-  <p class="tagline" id="intro-tag">A · K · A · S · H&nbsp;&nbsp;—&nbsp;&nbsp;Sanskrit for <em>“the sky”</em></p>
-  <p class="introline" id="intro-line">You are one molecule of gas.<br/>Travel from a single breath — past Earth, past the Sun —<br/>to the six stars I lit in this galaxy.</p>
-  <div class="scroll-hint" id="scroll-hint">
-    <span class="sh-text">SCROLL&nbsp;TO&nbsp;TRAVEL</span>
-    <span class="sh-chevron">⌄</span>
+  <div class="bar bar-t" aria-hidden="true"></div>
+  <div class="bar bar-b" aria-hidden="true"></div>
+
+  <header id="hud">
+    <div class="hud-l">
+      <span class="mark">GAS</span>
+      <span class="rule" aria-hidden="true"></span>
+      <span class="who">AKASH</span>
+    </div>
+    <div class="hud-r"><span id="act">GAS</span></div>
+  </header>
+
+  <!-- ACT 0 · the wordmark itself is volumetric gas, rendered in WebGL -->
+  <div id="title-copy">
+    <p class="kicker">AKASH — SANSKRIT FOR <em>THE SKY</em></p>
+    <p class="lede">I build cinematic products.<br />AI agents, full-stack systems, and interfaces that move.</p>
+    <div class="cue"><span>SCROLL</span><i aria-hidden="true"></i></div>
   </div>
+
+  <!-- ACT II · project caption -->
+  <section id="caption" aria-live="polite">
+    <p class="cat"></p>
+    <h2 class="name"></h2>
+    <p class="blurb"></p>
+    <ul class="stack"></ul>
+    <a class="open" target="_blank" rel="noopener">OPEN REPOSITORY <span aria-hidden="true">↗</span></a>
+  </section>
+
+  <!-- passive progress -->
+  <nav id="rail" aria-hidden="true">
+    <div id="rail-label"></div>
+    <div id="rail-line">
+      <div id="rail-ticks"></div>
+      <div id="rail-fill"></div>
+    </div>
+  </nav>
+
+  <!-- ACT III -->
+  <section id="contact-copy">
+    <p class="kicker">END OF ROUTE</p>
+    <h2 class="sign">Got an idea?<br />Let's give it <em>GAS.</em></h2>
+    <div class="links">
+      <a class="cta" href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>
+      <a class="cta ghost" href="https://github.com/Atomstars" target="_blank" rel="noopener">github.com/Atomstars</a>
+    </div>
+    <p class="foot">scroll back to fly the route again</p>
+  </section>
+
 </div>
 
-<!-- MOVIE TITLE CARD (appears on planet arrival) -->
-<div id="titlecard">
-  <span id="tc-num">01</span>
-  <h2 id="tc-name">DAVINA AEROSPACE</h2>
-</div>
+<div id="cursor" aria-hidden="true"></div>
 
-<!-- HOLO PANEL (project transmission) -->
-<aside id="panel">
-  <div class="holo-frame">
-    <div class="holo-head"><span id="p-status">◉ TRANSMISSION LIVE</span></div>
-    <div class="holo-img"><img id="p-img" alt="project preview" /><div class="scanline"></div></div>
-    <p id="p-desc">—</p>
-    <div id="p-tags" class="tags"></div>
-    <a id="p-link" class="btn small" target="_blank" rel="noopener">OPEN TRANSMISSION ↗</a>
-  </div>
-</aside>
-
-<!-- JOURNEY RAIL (passive progress indicator) -->
-<div id="rail">
-  <div id="rail-line"><div id="rail-fill"></div></div>
-</div>
-
-<!-- FINALE -->
-<div id="contact">
-  <p class="tagline">// END OF THE ROUTE — FOR NOW</p>
-  <h2 class="big"><span class="grad">AKASH</span></h2>
-  <p class="introline" style="margin-top:4px">builder of AI agents · full-stack products · ML systems · experiences like this one</p>
-  <h3 class="sub-big">Got an idea? Let’s give it <span class="grad">GAS.</span></h3>
-  <div class="cta-row">
-    <a href="mailto:govada.akash@gmail.com" class="btn">govada.akash@gmail.com</a>
-    <a href="https://github.com/Atomstars" target="_blank" rel="noopener" class="btn ghost">github.com/Atomstars</a>
-  </div>
-  <p class="hint-back">scroll back up to fly the route again</p>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script type="module" src="main.js"></script>
+<script type="module" src="/src/main.js"></script>
 </body>
 </html>

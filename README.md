@@ -1,34 +1,70 @@
-# GAS — A Journey Through My Galaxy
+# GAS — Akash
 
-A cinematic, scroll-piloted WebGL portfolio for **Akash** (*Akash* — Sanskrit for "the sky").
+A cinematic, scroll-piloted portfolio. Scroll is the only verb: no navigation, no
+clicking to open anything. Frames cut, they do not merely flow.
 
-You begin as a single molecule of gas. Scroll to travel: through swirling gas, up
-through the atmosphere, past **Earth**, past the **Sun**, out into the galaxy — where
-six burning **stars** are the projects I've built.
+**Read [SHOTLIST.md](SHOTLIST.md) first** — it is the film language and the production
+bible. Every frame is built against it.
 
-## Run locally
-
-No build step required — it's plain HTML + CSS + ES modules.
+## Run
 
 ```bash
-npx vite            # or any static server, e.g. `python -m http.server`
+npm install && npm run dev
 ```
 
-Then open the printed local URL.
+## Architecture
+
+Each frame is a **shot** that owns its own scene, camera, lighting and colour grade.
+That is the load-bearing decision: the previous build had one scene and one camera
+lerping through it forever, which is why it read as a ride rather than a film.
+
+```
+src/
+  core/
+    ShotSystem.js     shot registry, scroll ranges, transition resolution
+    GasTransition.js  THE signature mechanic — worlds atomize into gas and recondense
+    Post.js           bloom · AgX tonemap · grade · aberration · vignette · grain
+    Grade.js          per-shot lift/gamma/gain colour grade
+    Assets.js         texture cache
+    noise.js          shared GLSL (simplex + fbm)
+  shots/
+    TitleShot.js      ACT 0 — volumetric gas condensing into the wordmark
+    DavinaShot.js     ACT II/01 — the look-dev reference frame
+    ContactShot.js    ACT III
+  ui/Overlay.js       thin DOM type layer, driven by shot state
+  data/projects.js    the work, with per-project category + grade
+```
+
+### The gas transition
+
+A world does not cut to the next world — it atomizes into gas, the gas churns, and the
+gas recondenses into the next world. Implemented in screen space: both shots render to
+half-float targets, a fullscreen pass advects each by curl-ish noise, breaks them up
+with a per-pixel dissolve threshold, and emits light along the active dissolve edge so
+it reads as igniting gas rather than a crossfade.
+
+Cost is independent of scene complexity, and it works between **any** two shots — which
+makes it a reusable transition operator rather than a one-off effect.
+
+## Status
+
+| | |
+|---|---|
+| Engine (shots, transitions, post stack) | done |
+| ACT 0 — Title | done |
+| ACT II / 01 — Davina Aerospace (look-dev reference) | done |
+| ACT III — Contact | done |
+| ACT I — Thesis | not started |
+| ACT II / 02–06 — remaining five project worlds | not started |
+
+The five remaining project worlds are specified in [SHOTLIST.md](SHOTLIST.md) §5 and are
+produced against the Davina frame as the quality bar.
 
 ## Stack
 
-- **Three.js** (r160, via CDN) — real-time 3D: molecules, nebula gas, textured
-  planets, the Sun, a 16k-particle spiral galaxy, project stars
-- **GSAP** — title reveal and UI transitions
-- Pure canvas 2D for the "GAS" gas-condensation title
-- Planet / Sun / Milky-Way textures: [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0)
+Three.js · postprocessing (pmndrs) · GSAP · Lenis · Vite
 
-## Controls
-
-There are no buttons. **Scroll / trackpad / arrow keys** are the ship's throttle —
-scroll forward to fly the route, scroll back to reverse it. Each project star opens a
-transmission panel linking to its GitHub repo.
+Planet / sky textures: [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0)
 
 ---
 
