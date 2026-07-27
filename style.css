@@ -154,8 +154,23 @@ h2 {
 /* ---------------- rail ---------------- */
 #rail {
   position: fixed; z-index: 30; right: 20px; top: 50%; transform: translateY(-50%);
-  height: 32vh; pointer-events: none;
+  height: 42vh; pointer-events: none;
+  display: flex; align-items: stretch; gap: 14px;
 }
+#nav { display: flex; flex-direction: column; justify-content: space-between; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px; justify-content: flex-end;
+  font-family: 'Syncopate', sans-serif; font-size: 8px; letter-spacing: .22em;
+  color: rgba(238,243,255,.24); transition: color .45s ease;
+}
+.nav-item i { font-style: normal; font-size: 7px; opacity: .55; }
+.nav-item span {
+  max-width: 0; overflow: hidden; white-space: nowrap;
+  transition: max-width .55s cubic-bezier(.2,.8,.2,1), opacity .45s ease;
+  opacity: 0;
+}
+.nav-item.on { color: var(--cyan); }
+.nav-item.on span { max-width: 120px; opacity: 1; }
 #rail-line { position: relative; width: 1px; height: 100%; background: rgba(255,255,255,.09); }
 #rail-fill {
   position: absolute; top: 0; left: 0; width: 100%; height: 0;

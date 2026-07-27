@@ -5,8 +5,8 @@ import { Lens } from './core/lens.js';
 import { CameraRig } from './core/rig.js';
 import { Director } from './core/director.js';
 import { Pointer } from './core/pointer.js';
-import { loadFont } from './core/text3d.js';
-import { SHARED } from './core/material.js';
+import { loadFont, makeTextGeometry } from './core/text3d.js';
+import { SHARED, buildEnvironment, FINISH } from './core/material.js';
 import { PROJECTS, repoUrl } from './data/projects.js';
 import { createTitleFrame } from './frames/f01-title.js';
 import { createCraftFrame } from './frames/f02-craft.js';
@@ -127,6 +127,21 @@ async function boot() {
     .to(lens, { fade: 0, duration: 1.8, ease: 'power2.inOut' })
     .to(lens, { bars: 0.075, duration: 2.0, ease: 'power4.inOut' }, 0.15);
 
+  /* ---- the mark docks to the corner and stays ----
+     Once the title beat is over the wordmark does not disappear, it
+     travels to the top-right and becomes the header for the rest of the
+     film. Parented to the camera each frame so it holds its screen
+     position through every move. */
+  const headEnv = buildEnvironment(renderer, { accentA: 0x59e2ff, accentB: 0xff5fd2, key: 3.0 });
+  headerMat = FINISH.obsidian(headEnv);
+  headerMat.transparent = true;
+  headerMat.opacity = 0;
+  headerMat.depthTest = false;
+  header = new THREE.Mesh(makeTextGeometry('GAS', { width: 2.5, depth: 0.28, quality: 'mid' }), headerMat);
+  header.renderOrder = 60;
+  header.visible = false;
+  scene.add(header);
+
   window.GAS.ready = true;
 }
 
@@ -142,6 +157,20 @@ const smoothstep = (e0, e1, x) => {
   const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
   return t * t * (3 - 2 * t);
 };
+
+let header = null, headerMat = null;
+const _hv = new THREE.Vector3();
+
+const navEl = document.getElementById('nav');
+const NAV_LABELS = ['GAS', 'CRAFT', ...PROJECTS.map(p => p.name.split(' ')[0]), 'CONTACT'];
+NAV_LABELS.forEach((label, i) => {
+  const el = document.createElement('div');
+  el.className = 'nav-item';
+  el.innerHTML = `<i>${String(i).padStart(2, '0')}</i><span>${label}</span>`;
+  navEl.appendChild(el);
+});
+const navItems = [...navEl.children];
+let navActive = -1;
 
 const activeAccent = new THREE.Color(0x0a1830);
 const ACCENT_BY_ID = {
@@ -252,6 +281,33 @@ function tick() {
   const endOp = smoothstep(R_END[0], R_END[0] + 0.03, P);
   endEl.style.opacity = String(endOp);
   endEl.classList.toggle('on', endOp > 0.5);
+
+  /* --- the docked mark --- */
+  if (header) {
+    const d = 9;
+    const hh = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * d;
+    /* inset from the frame edge AND clear of the letterbox bar —
+       docked at 0.76 it sat underneath the top bar */
+    _hv.set(hh * camera.aspect * 0.66, hh * (0.98 - lens.bars * 2.6), -d);
+    camera.localToWorld(_hv);
+    header.position.copy(_hv);
+    header.quaternion.copy(camera.quaternion);
+    const op = smoothstep(0.050, 0.150, P) * (1 - smoothstep(0.965, 1.0, P));
+    headerMat.opacity = op * 0.92;
+    header.visible = op > 0.01;
+  }
+
+  /* --- where am I in the film --- */
+  const navIdx = P < R_TITLE[1] ? 0
+    : P < R_CRAFT[1] ? 1
+    : P >= R_END[0] ? NAV_LABELS.length - 1
+    : 2 + Math.max(0, Math.min(PROJECTS.length - 1,
+        Math.floor((P - R_PROJECT[0]) / ((R_PROJECT[1] - R_PROJECT[0]) / PROJECTS.length))));
+  if (navIdx !== navActive) {
+    navItems[navActive]?.classList.remove('on');
+    navItems[navIdx]?.classList.add('on');
+    navActive = navIdx;
+  }
 
   railFill.style.height = (P * 100).toFixed(2) + '%';
 

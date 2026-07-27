@@ -38,6 +38,18 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
   solid.receiveShadow = true;
   group.add(solid);
 
+  /* AKASH resolves underneath once GAS has set and lifted — the name
+     arrives after the brand, not alongside it. */
+  const akashMat = FINISH.obsidian(envMap);
+  akashMat.transparent = true;
+  akashMat.opacity = 0;
+  const akash = new THREE.Mesh(
+    makeTextGeometry('AKASH', { width: 13.5, depth: 1.1, quality: 'mid' }), akashMat);
+  akash.position.set(0, RISE - 7.4, 0);
+  akash.visible = false;
+  akash.castShadow = true;
+  group.add(akash);
+
   /* the room it stands in */
   const stage = makeStage({
     envMap, accent: 0x6fd8ff,
@@ -161,15 +173,16 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
     .key(P1,      { pos: V(0, -1.0, 3),        look: V(0, 0, -30),   roll:  0.028, fov: 58, focus: 12 });
 
   /* ---------------- the set ---------------- */
-  let revealT = 0, condense = 0, solidify = 0;
-  const DELAY = 0.9, CONDENSE_DUR = 3.6, SET_DUR = 1.5;
+  let revealT = 0, condense = 0, solidify = 0, lift = 0;
+  const DELAY = 0.9, CONDENSE_DUR = 3.6, SET_DUR = 1.5, LIFT_DUR = 1.8;
   const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   return {
     group,
     onFormed: null,
     onSet: null,
-    _f: false, _s: false,
+    onNamed: null,
+    _f: false, _s: false, _l: false,
     focusPlane: 0,
 
     update(P, dt, t, sweep = 0) {
@@ -188,8 +201,14 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
       solid.visible = s > 0.001;
       solidMat.opacity = s;
 
+      /* GAS rises, and the name arrives in the space it leaves */
+      lift = THREE.MathUtils.clamp(
+        (revealT - DELAY - CONDENSE_DUR * 0.86 - SET_DUR * 0.75) / LIFT_DUR, 0, 1);
+      const li = 1 - Math.pow(1 - lift, 3);
+
       if (!this._f && c > 0.5) { this._f = true; this.onFormed?.(); }
       if (!this._s && s > 0.6) { this._s = true; this.onSet?.(); }
+      if (!this._l && li > 0.7) { this._l = true; this.onNamed?.(); }
 
       /* pointer pushes the cloud; the push fades as the word sets */
       gasMat.uniforms.uPush.value = pointer.active * (1.2 + pointer.speed * 5.0) * (1 - s * 0.75);
@@ -200,6 +219,11 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
       const out = THREE.MathUtils.smoothstep(local, 0.62, 1.0);
       gasMat.uniforms.uOpacity.value = (1 - out) * (1 - s * 0.82);
       solidMat.opacity = s * (1 - out);
+      solid.position.y = RISE + li * 2.9;
+      akash.visible = li > 0.01 && out < 0.99;
+      akashMat.opacity = li * (1 - out);
+      akash.position.y = RISE - 7.4 + (1 - li) * 1.6;
+      akash.rotation.y = pointer.smooth.x * 0.06;
       solid.rotation.y = pointer.smooth.x * 0.10 + out * 0.5;
       solid.rotation.x = -pointer.smooth.y * 0.06;
       solid.position.z = -out * 26;
@@ -226,7 +250,7 @@ export async function createTitleFrame({ scene, camera, renderer, rig, pointer, 
     },
 
     setPixelRatio(pr) { gasMat.uniforms.uPixelRatio.value = pr; stage.setPixelRatio(pr); },
-    seekReveal(v) { revealT = DELAY + THREE.MathUtils.clamp(v, 0, 1) * (CONDENSE_DUR + SET_DUR); },
+    seekReveal(v) { revealT = DELAY + THREE.MathUtils.clamp(v, 0, 1) * (CONDENSE_DUR + SET_DUR + LIFT_DUR); },
     get particleCount() { return N; },
   };
 }

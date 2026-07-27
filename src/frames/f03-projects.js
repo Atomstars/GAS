@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeTextGeometry } from '../core/text3d.js';
 import { buildEnvironment, FINISH } from '../core/material.js';
 import { makeStage } from '../core/stage.js';
+import { makeScreen, loadProjectTexture } from '../core/screen.js';
 
 /* ==================================================================
    FRAMES 03–08 — THE WORK
@@ -201,6 +202,7 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
     mat.opacity = 0;
 
     const center = new THREE.Vector3(i % 2 ? 21 : -21, (i % 3 - 1) * 5.0, startZ - i * stepZ);
+    const side = i % 2 ? -1 : 1;   // which shoulder the camera passes on
 
     const group = new THREE.Group();
     group.position.copy(center);
@@ -209,6 +211,17 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
     const form = FORMS[proj.id](mat);
     form.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     group.add(form);
+
+    /* the product itself, standing in the room behind its form */
+    const accentCss = '#' + acc.a.toString(16).padStart(6, '0');
+    const screen = makeScreen({
+      texture: loadProjectTexture(proj, accentCss, tex => screen.setTexture(tex)),
+      width: 21, envMap,
+    });
+    screen.group.position.set(0, 3.4, -13);
+    screen.group.rotation.y = side * 0.16;
+    screen.group.rotation.x = -0.05;
+    group.add(screen.group);
 
     const stage = makeStage({
       envMap, accent: acc.a,
@@ -228,7 +241,6 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
     const p0 = P0 + i * span, p1 = p0 + span;
     const C = center;
     const V = (x, y, z) => new THREE.Vector3(x, y, z);
-    const side = i % 2 ? -1 : 1;
 
     /* Serpentine: approach from the far side, hold beside the object,
        then carry on past it toward the next. One unbroken move. */
@@ -254,6 +266,7 @@ export function createProjectFrames({ scene, camera, renderer, rig, pointer, pro
 
         mat.opacity = vis;
         stage.update(t, vis, sweep);
+        screen.update(vis, t);
         form.userData.tick?.(t);
         form.rotation.y += pointer.smooth.x * 0.0016;
         group.rotation.y = pointer.smooth.x * 0.12;

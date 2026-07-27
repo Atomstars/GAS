@@ -5,9 +5,13 @@
    `world` is the visual identity Phase 2 builds each frame around.
 ================================================================== */
 
+/* `image` is the drop-in point for real captures. Set it to a path under
+   /public (e.g. '/shots/davina.png') and that project's screen loads the
+   real thing instead of the drawn placeholder. Nothing else changes. */
 export const PROJECTS = [
   {
     id: 'davina',
+    image: null,
     name: 'DAVINA AEROSPACE',
     repo: 'Davina_AeroSpace',
     kind: 'Aerospace platform',
@@ -18,6 +22,7 @@ export const PROJECTS = [
   },
   {
     id: 'gmat',
+    image: null,
     name: 'GMAT VERBAL ENGINE',
     repo: 'gmat-verbal-practice',
     kind: 'EdTech platform',
@@ -28,6 +33,7 @@ export const PROJECTS = [
   },
   {
     id: 'job-agent',
+    image: null,
     name: 'JOB-AGENT',
     repo: 'Job-Agent',
     kind: 'Autonomous AI agent',
@@ -38,6 +44,7 @@ export const PROJECTS = [
   },
   {
     id: 'cafe-pos',
+    image: null,
     name: 'CAFÉ POS × N8N',
     repo: 'Cafe_pos',
     kind: 'Point of sale + automation',
@@ -48,6 +55,7 @@ export const PROJECTS = [
   },
   {
     id: 'housing',
+    image: null,
     name: 'HOUSING PREDICTOR',
     repo: 'Housing_Predictor_ML',
     kind: 'Machine learning',
@@ -58,6 +66,7 @@ export const PROJECTS = [
   },
   {
     id: 'buddy',
+    image: null,
     name: 'BUDDY APP',
     repo: 'Buddy-App',
     kind: 'Companion app',
