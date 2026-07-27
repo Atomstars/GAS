@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>GAS — logo proof</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #04050b; }
+  body {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    color: #e8eeff; touch-action: none; -webkit-font-smoothing: antialiased;
+  }
+  #stage { position: fixed; inset: 0; display: block; }
+
+  #boot {
+    position: fixed; inset: 0; z-index: 9; display: grid; place-items: center;
+    background: #04050b; font-size: 10px; letter-spacing: .4em; color: #4e5878;
+    transition: opacity .7s ease;
+  }
+  #boot.gone { opacity: 0; pointer-events: none; }
+
+  /* readout: proves the state is a real value, not a canned animation */
+  #hud {
+    position: fixed; z-index: 10; left: 50%; transform: translateX(-50%);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 34px);
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    pointer-events: none; width: min(280px, 70vw);
+  }
+  #state {
+    font-size: 11px; letter-spacing: .58em; color: #cfe2ff;
+    text-indent: .58em;
+  }
+  #meter { width: 100%; height: 1px; background: rgba(255,255,255,.14); overflow: hidden; }
+  #meter-fill {
+    width: 100%; height: 100%; transform-origin: left; transform: scaleX(0);
+    background: linear-gradient(90deg, #2ad4ff, #8f6bff, #ff5fd2);
+  }
+  #hint {
+    font-size: 9px; letter-spacing: .32em; color: #414a63; text-indent: .32em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div id="boot">LOADING</div>
+<div id="hud">
+  <div id="state">SOLID</div>
+  <div id="meter"><div id="meter-fill"></div></div>
+  <div id="hint">MOVE OVER IT — TOUCH IS HEAT</div>
+</div>
+<script type="module" src="/src/proof/logo.js"></script>
+</body>
+</html>
