@@ -24,6 +24,12 @@ Then open the printed local URL.
 - Pure canvas 2D for the "GAS" gas-condensation title
 - Planet / Sun / Milky-Way textures: [Solar System Scope](https://www.solarsystemscope.com/textures/) (CC BY 4.0)
 
+## Brand
+
+Six logo routes live in [`brand/`](brand/) — one geometric alphabet, drawn as
+paths rather than type. See [`brand/README.md`](brand/README.md) for the
+construction and where each mark works.
+
 ## Controls
 
 There are no buttons. **Scroll / trackpad / arrow keys** are the ship's throttle —

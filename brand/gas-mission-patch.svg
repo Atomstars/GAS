@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-118 -118 236 236" role="img" aria-label="GAS mission patch emblem">
+  <defs>
+    <linearGradient id="g06-x" gradientUnits="userSpaceOnUse" x1="0" y1="86" x2="302" y2="14"><stop offset="0" stop-color="#7b5cff"/><stop offset=".38" stop-color="#00e5ff"/><stop offset=".74" stop-color="#7b5cff"/><stop offset="1" stop-color="#ff4dd8"/></linearGradient>
+    <path id="arcTop06-x" d="M-94 0 A94 94 0 0 1 94 0"/>
+    <path id="arcBot06-x" d="M-103 0 A103 103 0 0 0 103 0"/>
+  </defs>
+  <circle cx="0" cy="0" r="112" fill="none" stroke="#00e5ff" stroke-width="2.5" opacity=".9"/>
+  <circle cx="0" cy="0" r="88" fill="none" stroke="#00e5ff" stroke-width="1" opacity=".38" stroke-dasharray="1.5 7"/>
+  <g font-family="Syncopate, 'Arial Narrow', sans-serif" font-weight="700" fill="#eaf0ff">
+    <text font-size="8.2" letter-spacing="2.2"><textPath href="#arcTop06-x" startOffset="50%" text-anchor="middle">A JOURNEY THROUGH MY GALAXY</textPath></text>
+    <text font-size="9.6" letter-spacing="3.2" opacity=".72"><textPath href="#arcBot06-x" startOffset="50%" text-anchor="middle">GOVADA · AKASH</textPath></text>
+  </g>
+  <circle cx="-37.74" cy="-49.19" r="2.2" fill="#eaf0ff" opacity="0.75"/><circle cx="-23.73" cy="-57.28" r="2.2" fill="#eaf0ff" opacity="0.75"/><circle cx="-8.09" cy="-61.47" r="3.4" fill="#ff4dd8" opacity="1"/><circle cx="8.09" cy="-61.47" r="2.2" fill="#eaf0ff" opacity="0.75"/><circle cx="23.73" cy="-57.28" r="2.2" fill="#eaf0ff" opacity="0.75"/><circle cx="37.74" cy="-49.19" r="2.2" fill="#eaf0ff" opacity="0.75"/>
+  <g transform="translate(-60.4 -12) scale(0.4)"><g fill="none" stroke="url(#g06-x)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"><path d="M93.5 50 A43.5 43.5 0 1 1 80.76 19.24"/><path d="M50 50 H93.5"/><path d="M132.5 93L172.5 8L212.5 93"/><path d="M146.6 63H198.4"/><path d="M289.06 12.44A22 22 0 1 0 273.5 50A22 22 0 1 1 257.94 87.56"/></g></g>
+  <path d="M-74 54 A118 118 0 0 0 74 54" fill="none" stroke="#00e5ff" stroke-width="1.8" opacity=".45" stroke-linecap="round"/>
+  <circle cx="0" cy="66.5" r="2.6" fill="#00e5ff" opacity=".55"/>
+</svg>

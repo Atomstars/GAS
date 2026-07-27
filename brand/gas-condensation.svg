@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -64 358 176" role="img" aria-label="GAS condensation wordmark"><defs>
+    <linearGradient id="g03-x" gradientUnits="userSpaceOnUse" x1="0" y1="86" x2="310" y2="14"><stop offset="0" stop-color="#7b5cff"/><stop offset=".38" stop-color="#00e5ff"/><stop offset=".74" stop-color="#7b5cff"/><stop offset="1" stop-color="#ff4dd8"/></linearGradient>
+    <linearGradient id="fadeUp03-x" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".18" stop-color="#fff" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <linearGradient id="fadeDown03-x" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#fff" stop-opacity="1"/>
+      <stop offset=".62" stop-color="#fff" stop-opacity="1"/>
+      <stop offset=".9" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="dots03-x" width="7.5" height="7.5" patternUnits="userSpaceOnUse">
+      <circle cx="3.75" cy="3.75" r="1.75" fill="#fff"/>
+    </pattern>
+    <mask id="topFade03-x"><rect x="-30" y="-70" width="370" height="190" fill="url(#fadeDown03-x)"/></mask>
+    <mask id="solid03-x"><rect x="-30" y="-8" width="370" height="120" fill="url(#fadeUp03-x)"/></mask>
+    <mask id="dotted03-x"><rect x="-30" y="-70" width="370" height="190" fill="url(#dots03-x)" mask="url(#topFade03-x)"/></mask>
+  </defs>
+  <g fill="none" stroke="url(#g03-x)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" mask="url(#solid03-x)"><path d="M93.5 50 A43.5 43.5 0 1 1 80.76 19.24"/><path d="M50 50 H93.5"/><path d="M136.5 93L176.5 8L216.5 93"/><path d="M150.6 63H202.4"/><path d="M297.06 12.44A22 22 0 1 0 281.5 50A22 22 0 1 1 265.94 87.56"/></g>
+  <g fill="none" stroke="url(#g03-x)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" mask="url(#dotted03-x)"><path d="M93.5 50 A43.5 43.5 0 1 1 80.76 19.24"/><path d="M50 50 H93.5"/><path d="M136.5 93L176.5 8L216.5 93"/><path d="M150.6 63H202.4"/><path d="M297.06 12.44A22 22 0 1 0 281.5 50A22 22 0 1 1 265.94 87.56"/></g>
+  <g fill="#00e5ff"><circle cx="139.06" cy="-20.13" r="1.3" opacity="0.67"/><circle cx="198.7" cy="-11.48" r="2.14" opacity="0.26"/><circle cx="258.37" cy="-14.36" r="1.16" opacity="0.20"/><circle cx="279.96" cy="-35.4" r="1.54" opacity="0.51"/><circle cx="277.35" cy="-32.4" r="2.4" opacity="0.22"/><circle cx="113.23" cy="-32.42" r="2.24" opacity="0.22"/><circle cx="54.91" cy="-55.43" r="1.7" opacity="0.49"/><circle cx="16.68" cy="-53.15" r="2.38" opacity="0.47"/><circle cx="53.48" cy="-16.58" r="2.73" opacity="0.51"/><circle cx="208.24" cy="-14.21" r="2.27" opacity="0.53"/><circle cx="2.66" cy="-6.78" r="2.06" opacity="0.53"/><circle cx="48.92" cy="-24.64" r="2.09" opacity="0.27"/><circle cx="297.07" cy="-7.43" r="2.74" opacity="0.64"/><circle cx="20.4" cy="-28.47" r="1.7" opacity="0.64"/><circle cx="178.77" cy="-56.11" r="1.27" opacity="0.36"/><circle cx="137.07" cy="-51.84" r="2.75" opacity="0.61"/><circle cx="53.89" cy="-27.46" r="2.28" opacity="0.25"/><circle cx="42.41" cy="-44.97" r="2.79" opacity="0.23"/><circle cx="243.73" cy="-55.49" r="1.42" opacity="0.59"/><circle cx="89.72" cy="-40.35" r="1.81" opacity="0.67"/><circle cx="20.24" cy="-14.96" r="1.15" opacity="0.56"/><circle cx="257.31" cy="-54.85" r="2.55" opacity="0.27"/></g>
+</svg>
