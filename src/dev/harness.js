@@ -108,6 +108,97 @@ export function installHarness(ctx) {
     return out;
   }
 
+  /* ---------------------------------------------------------------------
+     Live-loop driving.
+
+     `step` above bypasses Lenis and the velocity smear, so it can prove a shot
+     looks right but not that the SITE works. These drive the real `tick` from
+     main.js — same Lenis instance, same smear, same transition scheduling —
+     with a synthetic clock, because rAF is throttled to zero whenever the
+     browser pane isn't compositing.
+     --------------------------------------------------------------------- */
+
+  const { tick } = ctx;
+  let clockMs = 0;
+
+  /** Run the shipped loop for `frames` at a fixed dt, collecting a trace. */
+  function pump(frames, { fps = 60, sample = null } = {}) {
+    const dt = 1 / fps;
+    const trace = [];
+    for (let i = 0; i < frames; i++) {
+      clockMs += dt * 1000;
+      const s = tick(clockMs, dt);
+      if (sample && i % sample === 0) {
+        trace.push({
+          P: +s.P.toFixed(4),
+          y: Math.round(scrollY),
+          shot: s.r.from.id,
+          mix: s.r.mix === null ? null : +s.r.mix.toFixed(2),
+          vel: +s.vel.toFixed(3),
+          turb: +s.turbulence.toFixed(3),
+        });
+      }
+    }
+    return trace;
+  }
+
+  /** Simulate a real wheel flick and watch Lenis carry it. */
+  function flick(deltaY = 900, frames = 90) {
+    dispatchEvent(new WheelEvent('wheel', { deltaY, bubbles: true, cancelable: true }));
+    return pump(frames, { sample: 6 });
+  }
+
+  /** Scroll the whole film at a given pace and report anything that broke. */
+  async function fly({ seconds = 26, fps = 60 } = {}) {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    const frames = Math.round(seconds * fps);
+    const errors = [];
+    const onErr = (e) => errors.push(String(e.error?.stack || e.message));
+    addEventListener('error', onErr);
+
+    const trace = [];
+    const before = renderer.info.render.frame;
+    for (let i = 0; i < frames; i++) {
+      // ease the wheel in and out so the velocity smear sees a real ramp
+      const u = i / (frames - 1);
+      const target = max * u;
+      ctx.lenis.scrollTo(target, { immediate: false, duration: 0.35, lock: false });
+      clockMs += (1000 / fps);
+      const s = tick(clockMs, 1 / fps);
+      trace.push({
+        P: s.P, shot: s.r.from.id, to: s.r.to?.id ?? null,
+        mix: s.r.mix, vel: s.vel, turb: s.turbulence,
+      });
+    }
+    removeEventListener('error', onErr);
+
+    // fold the per-frame trace into one row per shot / per transition
+    const rows = [];
+    for (const f of trace) {
+      const key = f.mix === null ? f.shot : `${f.shot}->${f.to}`;
+      const last = rows[rows.length - 1];
+      if (last && last.key === key) {
+        last.frames++;
+        last.maxVel = Math.max(last.maxVel, f.vel);
+        last.maxTurb = Math.max(last.maxTurb, f.turb);
+        last.pEnd = f.P;
+      } else {
+        rows.push({ key, frames: 1, pStart: f.P, pEnd: f.P, maxVel: f.vel, maxTurb: f.turb });
+      }
+    }
+    return {
+      renderedFrames: renderer.info.render.frame - before,
+      errors,
+      rows: rows.map((r) => ({
+        key: r.key,
+        frames: r.frames,
+        p: `${r.pStart.toFixed(3)}-${r.pEnd.toFixed(3)}`,
+        maxVel: +r.maxVel.toFixed(3),
+        maxTurb: +r.maxTurb.toFixed(3),
+      })),
+    };
+  }
+
   /** Put the film in the state the opening tweens would have left it in. */
   function settle() {
     post.fade = 1;
@@ -117,5 +208,5 @@ export function installHarness(ctx) {
   }
 
   settle();
-  Object.assign(window.__GAS, { step, shoot, sheet, settle });
+  Object.assign(window.__GAS, { step, shoot, sheet, settle, pump, flick, fly, readback });
 }

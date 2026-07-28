@@ -1,132 +1,140 @@
 # GAS — handoff
 
-Read `SHOTLIST.md` first; it is the production bible and every shot is built against it.
-This file is the state of play and the things that will waste your time if you rediscover
-them the hard way.
+Read `SHOTLIST.md` first; it is the production bible. This file is the state of
+play and the things that will waste your time if you rediscover them the hard way.
 
 ---
 
 ## 1. Where the build is
 
-The film is **nine shots, 1190vh, complete end to end.** Before this pass it was three
-shots with five of the six project worlds missing — that absence, not the look, was why the
-site felt unfinished.
+**Ten shots, 1320vh.** The route is `TITLE → THESIS → GATE → six worlds → CONTACT`.
 
 | # | Shot | File | State |
 |---|---|---|---|
-| 0 | TITLE | `src/shots/TitleShot.js` | Pre-existing. Volumetric gas wordmark, pointer wake + parallax. Untouched. |
-| I | THESIS | `src/shots/ThesisShot.js` | **New.** Corridor fly-through, statement ignites in reading order. |
-| 01 | Davina | `src/shots/DavinaShot.js` | Pre-existing look-dev frame. Untouched — it still sets the bar. |
-| 02 | Job-Agent | `src/shots/JobAgentShot.js` | **New.** Graph mid-search, burning traversal, stage labels. |
-| 03 | Café POS | `src/shots/CafePosShot.js` | **New.** Near-ortho workflow machine, packets on a fixed cadence. |
-| 04 | Housing | `src/shots/HousingShot.js` | **New.** Terrain flyover, prediction ribbon leading the ground. |
-| 05 | Buddy | `src/shots/BuddyShot.js` | **New.** The relief shot — real materials, real key light, lit device. |
-| 06 | GMAT | `src/shots/GmatShot.js` | **New.** Text-as-architecture corridor, argument resolves as a lighting change. |
-| III | CONTACT | `src/shots/ContactShot.js` | Pre-existing. **Weakest shot in the film — see §5.** |
+| 0 | TITLE | `src/shots/TitleShot.js` | Rebuilt. Wordmark condenses out of a gas volume. |
+| I | THESIS | `src/shots/ThesisShot.js` | Rebuilt. Five beats, headline + supporting line. |
+| I½ | **GATE** | `src/shots/GateShot.js` | **New.** Four category rooms on a helix. |
+| 01 | Davina | `src/shots/DavinaShot.js` | Original look-dev frame. Still sets the bar. |
+| 02 | Job-Agent | `src/shots/JobAgentShot.js` | **Weak — see §5.** |
+| 03 | Café POS | `src/shots/CafePosShot.js` | **Weak — see §5.** |
+| 04 | Housing | `src/shots/HousingShot.js` | **Weak — see §5.** |
+| 05 | Buddy | `src/shots/BuddyShot.js` | Good. Real materials, lit device. |
+| 06 | GMAT | `src/shots/GmatShot.js` | Corridor of type. Conclusion beat fixed. |
+| III | CONTACT | `src/shots/ContactShot.js` | Rebuilt. The terminus: route + horizon. |
 
-New shared modules: `src/core/Text.js` (type as scene geometry), `src/core/math.js` (ramps).
+Shared modules: `src/core/Text.js` (type as geometry), `src/core/math.js` (ramps),
+`src/core/motion.js` (reduced-motion policy).
 
 ---
 
-## 2. How to actually see a frame — do this before changing any look
+## 2. How to see a frame
 
-**`requestAnimationFrame` does not fire when the browser pane is not displayed**, so the
-render loop never runs and the page reads as blank/black. This will make you think you have
-broken something when you have not.
-
-There is a dev harness for exactly this. `src/dev/harness.js` is imported by `main.js` behind
-`import.meta.env.DEV` and drives the film deterministically, independent of rAF:
+`requestAnimationFrame` does not fire when the browser pane is not displayed, so the
+page reads as black. Use the dev harness — it drives the film deterministically:
 
 ```js
-// in the page console / javascript_tool
-await __GAS.shoot(0.42, 'my_frame')        // render at global progress P, write .frames/my_frame.png
-await __GAS.sheet([[0.2, 'a'], [0.5, 'b']]) // contact sheet
+__GAS.resize(1600, 900)                // the pane reports innerWidth 0 when hidden
+__GAS.settle()
+await __GAS.shoot(0.42, 'my_frame')    // renders at global P, writes .frames/my_frame.png
+await __GAS.sheet([[0.2,'a'], [0.5,'b']])
 ```
 
-It returns `{ shot, to, mix, lit, hot, meanLum }` — `lit` is the fraction of the frame above
-black. **Use the numbers, not your impression of a description.** Every look bug in §4 was
-found by a measurement disagreeing with what the code was supposed to be doing.
+`__GAS.pump(n)` and `__GAS.fly()` drive the **real** loop from `main.js` — Lenis,
+velocity smear and all — rather than a harness reimplementation. Use those to verify
+scroll behaviour; `shoot`/`sheet` bypass Lenis.
 
-Frames land in `.frames/` (gitignored), served by the `frameSink` plugin in `vite.config.js`.
-Keep a sheet under ~6 frames per call or the tool call times out.
-
-Start the server with the Browser pane tools (`preview_start` with name `site`), never Bash.
+**Do not benchmark heavily in the embedded pane.** Sustained GPU load wedges its GPU
+process (`GL_VENDOR = Disabled`) and it then needs an app restart. Absolute timings
+from it are unreliable — the same frame measured 1ms and 67ms in different contexts.
+Ratios are meaningful; absolutes are not.
 
 ---
 
-## 3. Design decisions already made — don't relitigate these
+## 3. Decisions already made — don't relitigate
 
-**Background: changes per world, with constant connective tissue.** Each project has its own
-background, palette and grade, because the whole premise is that each project reads as its own
-domain. What stays constant across all nine shots is the gas transition, the grain, the
-letterbox, the HUD, the rail and the cursor. That is what makes it one film rather than nine
-screensavers. The alternative — one fixed background — was considered and rejected: it would
-flatten the six worlds into one.
+**Backgrounds change per world; the connective tissue does not.** The gas cut, grain,
+letterbox, HUD, rail and cursor are constant. That is what makes it one film.
 
-**The rail is the pipeline.** Right-hand rail, six numbered stops, the current one lit.
-This is the "pipeline from one end to the other with each project in between" made literal.
-`Overlay.buildRail()` + `#rail-ticks i.stop` in `style.css`.
+**The rail is the pipeline.** Right-hand rail, numbered stops, current one lit.
 
-**Scroll is still the only verb.** No added click targets outside CONTACT and project CTAs.
+**Scroll is the only verb — with one deliberate exception.** The GATE adds click
+targets. Scrolling past it flies the whole route exactly as before; clicking a room is
+a shortcut. The default path is untouched.
+
+**Featured worlds + listed rest.** `projects.js` carries `room` and `featured` on every
+project. Flagships get a bespoke world; the long tail is listed inside its room. This
+is what lets the set scale past ~8 projects without the route becoming endless.
 
 ---
 
 ## 4. Traps that already cost time
 
-1. **`THREE.MathUtils.smoothstep(x, min, max)` returns 0 when `min > max`.** It guards with
-   `if (x <= min) return 0`, so a descending range — which is how you write almost every
-   fade-out — silently evaluates to zero everywhere. Every fade in THESIS was dead because of
-   this. Use `ramp()` / `lramp()` from `src/core/math.js`, which handle both directions.
+1. **`THREE.MathUtils.smoothstep(x, min, max)` returns 0 when `min > max`.** Use
+   `ramp()` / `lramp()` from `core/math.js`, which handle both directions.
 
-2. **`MeshStandardMaterial` with high `metalness` and no environment map renders black.**
-   A metal has nothing to reflect. The Buddy device body vanished entirely at `metalness: 0.72`.
-   It is `0.22` now with tight roughness.
+2. **`MeshStandardMaterial` with high `metalness` and no env map renders black.**
 
-3. **Point-sprite size goes as 1/z, so a node drifting through the lens fills the frame.**
-   One Job-Agent node measured 38% frame coverage on its own. Both a `min()` clamp on
-   `gl_PointSize` and a near-fade on brightness are needed — the clamp alone still leaves a
-   flat disc parked in shot.
+3. **Point-sprite size goes as 1/z** — clamp `gl_PointSize` *and* fade on approach.
 
-4. **The gas transition's burn edge is the thing that blows out, not bloom.** Isolating it
-   measured 0.383 mean luminance for the edge term against 0.015 for both worlds combined.
-   The tent `1 - |a*2 - 1|` sits above 0.7 across ~20% of a smooth threshold field, so a soft
-   exponent ignites a fifth of the *frame* at once. It is `pow(..., 6.0)` now. If you touch
-   `uEdgeStrength`, re-measure the midpoints — target **meanLum 0.05–0.08**, and the outgoing
-   shape must still be visible at `mix = 0.5`.
+4. **The gas cut's burn edge is what blows out, not bloom.** It is `pow(..., 6.0)`.
+   Re-measure midpoints if you touch `uEdgeStrength`: target meanLum 0.05–0.08, and the
+   outgoing shape must still be visible at `mix = 0.5`.
 
-5. **Fly-through type crops to nonsense if you set it as long single lines.** A 20-character
-   line is ~11:1; at any distance where it fills the frame vertically it is several frame-widths
-   wide. Measured ndcX 1.54 at the exact moment its reveal completed. Set as two-line blocks.
+5. **A beat must be GONE before the lens reaches it.** A block is frame-filling by ~7
+   units out; past that it is giant cropped letters, and because type is additive you
+   read the corridor and the *next* beat straight through it.
 
-6. Shots whose subject is large areas of near-white type need their grade `bloom` at ~0.5,
-   not the stack default. THESIS and GMAT both override it.
+6. **Beat spacing must be narrower than the readable window.** That window is bounded at
+   both ends (too small far out, cropped up close) — about 48 units. Spacing beats 68
+   apart left holes where neither was legible (measured 0.08 / 0.13 opacity).
+
+7. **The camera must stop SHORT of the final beat.** Overshooting put THESIS's closing
+   line at opacity 0.04 and the GATE's fourth room at 0.00 — both acts ended on an empty
+   frame. Stop ~45 units short and hold.
+
+8. **Backticks inside GLSL comments terminate the JS template literal.** The file dies
+   with a `SyntaxError` pointing nowhere near the cause.
+
+9. **`paragraphTexture` and `textTexture` both take a `halo` option.** It used to be
+   hardcoded in `paragraphTexture`, so every multi-line block silently ignored
+   `TIGHT_HALO`. Small type needs the tight halo or its counters fill in.
+
+10. **Shader compilation, not frame cost, was the stall.** Building a shot creates
+    materials; WebGL does not compile until first *render*. Measured 120–530ms per world,
+    landing mid-scroll. `main.js` now warms each shot with `compileAsync` plus one
+    off-screen render into a half-float target. Do not remove it.
+
+11. **The pane reports `innerWidth: 0` when hidden**, which sized the drawing buffer to
+    1×1 and made every measurement read black. `resize()` has an unconditional floor.
+
+12. **Chromatic aberration tears thin bright lines.** Base is 0.0009; at the old 0.0018
+    every 1px line in the film (ducts, rails, portals) split into red/green ghosts.
 
 ---
 
 ## 5. What is not done
 
-- **CONTACT is the weakest shot.** It is still the original churning gas bed with DOM type on
-  top and no structure of its own. It is the last thing a prospective client sees and it does
-  not currently earn that position. Highest-value next job.
-- **`index.html` copy was never reviewed.** The title lede, contact copy and CTAs are whatever
-  the earlier session wrote. Worth a read against the marketing intent.
-- **No performance pass.** Nine shots build lazily, but nothing has been profiled. The GMAT
-  and Job-Agent scenes are the heaviest.
-- **No mobile pass**, and `prefers-reduced-motion` only covers the two original CSS animations —
-  none of the new scroll-driven camera work respects it.
-- **Live scroll was never verified end-to-end.** Everything was verified through the harness,
-  which bypasses Lenis and the velocity smear. The Lenis feel, the scroll-velocity smear and
-  the transitions under real fast scrolling are unproven. **Verify this first** — with the
-  browser pane displayed, rAF runs and normal screenshots work.
+- **Job-Agent, Café POS and Housing do not hold up** next to Davina and Buddy. Decide
+  whether to rebuild them or demote them to listed entries (`featured: false`) in their
+  rooms.
+- **GMAT should read as a knowledge app** — real questions, not just a type corridor.
+- **No per-project detail content.** Each project has a blurb and stack chips; nothing
+  about the problem, the approach or the outcome, and no live links.
+- **The fly-through may be the wrong motion model for readable type.** Type scales and
+  slides the entire time it is on screen. Letting each beat come to rest and hold is the
+  obvious alternative and has not been tried.
+- **Frame rate has never been measured reliably on real hardware** (see §2). Scroll
+  behaviour is verified via `__GAS.pump`/`fly`, not by a human.
+- **No mobile device testing.** The CSS and pixel-ratio caps are in, untested on glass.
 
 ---
 
 ## 6. On the Motion MCP
 
-The connected Motion MCP (`create_video`) is a **video generator** — it produces finished
-video files from a brief. It cannot produce website animation code, shaders or scroll-driven
-motion, so it played no part in this build and is not the tool for the remaining work. It
-would be the right tool for a promo reel *of* the finished site.
+`create_video` is a **video generator** — it produces finished video files from a brief.
+It cannot produce scroll-driven WebGL, shaders or website animation code, so it plays no
+part in building this site. It would be the right tool for a promo reel *of* the finished
+site. The account currently has 0 credits.
 
 ---
 

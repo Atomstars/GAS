@@ -125,5 +125,72 @@ export const PROJECTS = [
   },
 ];
 
+/* ---------------------------------------------------------------------------
+   THE ROOMS.
+
+   The film used to run the six projects as one straight line, which works at six
+   and breaks at twenty: the route just gets longer, and a visitor who wants one
+   specific kind of work has to fly past everything else to find it.
+
+   So the work is grouped, and the GATE shot before it puts the four rooms on
+   screen as destinations. Scrolling on flies the whole route exactly as before;
+   choosing a room jumps to it. The default path is unchanged — the gate adds an
+   option, it does not impose one.
+
+   `featured` projects keep their own bespoke world. Everything else is listed
+   inside its room: title, stack, one line, a link. That split is what makes the
+   set scalable — a flagship earns a world, the long tail earns a line, and the
+   average quality of the film goes UP as projects are added rather than down.
+   --------------------------------------------------------------------------- */
+
+export const CATEGORIES = [
+  {
+    id: 'ai',
+    label: 'AI & AGENTS',
+    n: '01',
+    line: 'Systems that decide and act on their own.',
+    accent: 0xffa943,
+  },
+  {
+    id: 'systems',
+    label: 'SYSTEMS & AUTOMATION',
+    n: '02',
+    line: 'Work that used to be done by hand, wired end to end.',
+    accent: 0xffc98a,
+  },
+  {
+    id: 'ml',
+    label: 'ML & PREDICTION',
+    n: '03',
+    line: 'Models that call the number before the market prints it.',
+    accent: 0x7ff0c0,
+  },
+  {
+    id: 'product',
+    label: 'PRODUCT & INTERFACE',
+    n: '04',
+    line: 'Things people actually open, and keep opening.',
+    accent: 0x8fd4ff,
+  },
+];
+
+/** Which room each project belongs to. */
+export const MEMBERSHIP = {
+  'job-agent': 'ai',
+  'cafe-pos': 'systems',
+  housing: 'ml',
+  davina: 'product',
+  buddy: 'product',
+  gmat: 'product',
+};
+
+for (const p of PROJECTS) {
+  p.room = MEMBERSHIP[p.id];
+  p.featured = true;          // all six currently have a world of their own
+}
+
+export const roomOf = (id) => CATEGORIES.find((c) => c.id === id);
+export const projectsIn = (roomId) => PROJECTS.filter((p) => p.room === roomId);
+
 export const GITHUB_USER = 'Atomstars';
 export const repoUrl = (repo) => `https://github.com/${GITHUB_USER}/${repo}`;

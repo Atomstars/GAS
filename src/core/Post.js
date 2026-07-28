@@ -7,6 +7,7 @@ import {
 } from 'postprocessing';
 import { GradeEffect, NEUTRAL_GRADE } from './Grade.js';
 import { VelocityEffect } from './Velocity.js';
+import { motion } from './motion.js';
 
 /* Master intensity for the whole look. The first build set this effectively to
    "tasteful" and it read as flat — this is a spectacle brief, so it is loud. */
@@ -21,9 +22,13 @@ export class Post {
   constructor(renderer, scene, camera) {
     this.renderer = renderer;
 
+    /* MSAA on a half-float target is one of the more expensive things you can ask
+       a tile GPU for, and almost nothing in this film is a hard geometric edge —
+       it is glows, type haloes and particulate, all of which the bloom and grain
+       resolve anyway. Not worth the bandwidth on a phone. */
     this.composer = new EffectComposer(renderer, {
       frameBufferType: THREE.HalfFloatType,
-      multisampling: Math.min(4, renderer.capabilities.maxSamples || 0),
+      multisampling: motion.touch ? 0 : Math.min(4, renderer.capabilities.maxSamples || 0),
     });
 
     this.renderPass = new RenderPass(scene, camera);
@@ -46,7 +51,13 @@ export class Post {
     this.grade = new GradeEffect();
 
     this.chroma = new ChromaticAberrationEffect({
-      offset: new THREE.Vector2(0.0018, 0.0018),   // ~4x the first pass; now visible
+      /* Base kept low. At 0.0018 this is ~3px of channel separation at 1600px,
+         which is fine on gas and soft type but tears every thin bright line in the
+         film into red and green ghosts — the THESIS duct, the GATE portals, the
+         CONTACT rails are all 1px geometry. It reads as a rendering fault rather
+         than as a lens. The heat coupling below still surges it during a gas cut
+         and under fast scroll, which is where it earns its keep. */
+      offset: new THREE.Vector2(0.0009, 0.0009),
       radialModulation: true,
       modulationOffset: 0.22,
     });
@@ -113,7 +124,7 @@ export class Post {
     // grain carry the sense of heat instead; they add energy without adding light.
     const heat = this.turbulence + this.velocity.amount * 0.7;
     this.bloom.intensity = c.bloom * BLOOM_GAIN + heat * 0.35;
-    const o = 0.0018 + heat * 0.0055;
+    const o = 0.0009 + heat * 0.0055;
     this.chroma.offset.set(o, o);
     this.grain.blendMode.opacity.value = 0.28 + heat * 0.14;
   }

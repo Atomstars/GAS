@@ -1,3 +1,5 @@
+import { motion } from './motion.js';
+
 /* Shared, smoothed input state. Shots read this for pointer parallax and
    pointer-reactive shaders; Post reads velocity for the scroll smear.
 
@@ -41,8 +43,11 @@ export function initInput() {
 
 export function updateInput(dt) {
   const k = 1 - Math.exp(-dt * 5.0);
-  input.px += (input.tx - input.px) * k;
-  input.py += (input.ty - input.py) * k;
+  // gated here rather than in each shot: every world reads px/py for parallax,
+  // so zeroing it at the source is what makes the policy impossible to miss
+  const par = motion.parallax;
+  input.px += (input.tx * par - input.px) * k;
+  input.py += (input.ty * par - input.py) * k;
   input.presence += (input.tPresence - input.presence) * (1 - Math.exp(-dt * 3.0));
   input.ux = input.px * 0.5 + 0.5;
   input.uy = input.py * 0.5 + 0.5;

@@ -3,17 +3,52 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GAS — Akash</title>
-<meta name="description" content="GAS — Akash. Cinematic products: AI agents, full-stack systems, and interfaces that move." />
+<title>GAS — Akash · AI agents, full-stack systems, automation</title>
+<meta name="description" content="Akash builds AI agents, full-stack platforms and the automation between them. Six projects — an autonomous job agent, an aerospace platform, a POS wired into n8n, an ML price model, a companion app and a GMAT verbal engine." />
 <meta name="theme-color" content="#000000" />
+<meta name="color-scheme" content="dark" />
+
+<!-- This site exists to be SENT to people. Without these a shared link renders as
+     a bare URL, which for a portfolio is the whole first impression lost. -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="GAS — Akash" />
+<meta property="og:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
+<meta property="og:image" content="/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="GAS — Akash" />
+<meta name="twitter:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
+<meta name="twitter:image" content="/og.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 
 <canvas id="gl"></canvas>
 <div id="scroll-space" aria-hidden="true"></div>
+
+<!-- The text layer of record.
+
+     Everything a visitor SEES is either WebGL or a caption that shows one project
+     at a time, so before this the payload of the site — the six projects, 75% of
+     its scroll — had no text representation at all: nothing for a crawler, nothing
+     for a screen reader, nothing to quote. The visible film is the experience; this
+     is the same content in a form that survives without it. Filled from
+     data/projects.js so it cannot drift out of sync with the film. -->
+<main id="index" class="sr-only">
+  <h1>Akash — AI agents, full-stack systems and automation</h1>
+  <p>
+    I build AI agents, full-stack platforms and the automation between them.
+    The site itself is a scroll-piloted film; the work is listed below.
+  </p>
+  <h2>Selected work</h2>
+  <ol id="index-work"></ol>
+  <h2>Contact</h2>
+  <p>
+    Email <a href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>,
+    or see the source on <a href="https://github.com/Atomstars" rel="noopener">GitHub</a>.
+  </p>
+</main>
 
 <div class="film">
 
@@ -30,20 +65,32 @@
   </header>
 
   <!-- ACT 0 · the wordmark itself is volumetric gas, rendered in WebGL -->
-  <div id="title-copy">
+  <div id="title-copy" aria-hidden="true">
     <p class="kicker">AKASH — SANSKRIT FOR <em>THE SKY</em></p>
-    <p class="lede">I build cinematic products.<br />AI agents, full-stack systems, and interfaces that move.</p>
+    <!-- was "I build cinematic products", which named a texture rather than a
+         capability; a visitor deciding whether to get in touch needs the second
+         line's specifics in the first line's position -->
+    <p class="lede">I build AI agents, full-stack platforms<br />and the automation between them.</p>
     <div class="cue"><span>SCROLL</span><i aria-hidden="true"></i></div>
   </div>
 
-  <!-- ACT II · project caption -->
-  <section id="caption" aria-live="polite">
+  <!-- ACT II · project caption.
+       aria-hidden, and deliberately: as a polite live region it re-announced the
+       whole card every time the scroll crossed into another world, which on a
+       1190vh page is relentless. #index above carries the same six projects as a
+       list the reader can move through at their own pace. -->
+  <section id="caption" aria-hidden="true">
     <p class="cat"></p>
     <h2 class="name"></h2>
     <p class="blurb"></p>
     <ul class="stack"></ul>
     <a class="open" target="_blank" rel="noopener">OPEN REPOSITORY <span aria-hidden="true">↗</span></a>
   </section>
+
+  <!-- ACT I½ · the gate. Anchors are positioned from the 3D portals each frame,
+       so the click target sits on the doorway it belongs to. Scrolling past is
+       still the default path — these are a shortcut, not a required choice. -->
+  <div id="gate-targets" aria-label="Jump to a category"></div>
 
   <!-- passive progress -->
   <nav id="rail" aria-hidden="true">
@@ -55,9 +102,12 @@
   </nav>
 
   <!-- ACT III -->
-  <section id="contact-copy">
+  <section id="contact-copy" aria-hidden="true">
     <p class="kicker">END OF ROUTE</p>
     <h2 class="sign">Got an idea?<br />Let's give it <em>GAS.</em></h2>
+    <!-- The hook was doing all the work alone. This is the one place a visitor
+         decides whether to write, so it should say what to write about. -->
+    <p class="ask">Tell me what you're building. I'll tell you how I'd build it.</p>
     <div class="links">
       <a class="cta" href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>
       <a class="cta ghost" href="https://github.com/Atomstars" target="_blank" rel="noopener">github.com/Atomstars</a>

@@ -45,7 +45,7 @@ const PANELS_PER_SIDE = 12;
    rather than on the empty corridor behind it. At the original travel the lens
    overran the last panel and the shot played out to 0.9% frame coverage. */
 const CAM_Z0 = 22;
-const CAM_Z1 = -212;
+const CAM_Z1 = -206;
 
 export class GmatShot extends Shot {
   constructor() {
@@ -99,7 +99,12 @@ export class GmatShot extends Shot {
     /* ---- the reasoning beats, standing in the corridor ---- */
     this.beats = BEATS.map((b) => {
       const m = textPlane(b.text, {
-        height: b.final ? 3.0 : 2.3,
+        /* "∴ CONCLUSION" measures 6.99:1. At the old 3.0 that is 20.97 wide against
+           the 16.9 the lens can see from where the camera stops, so the film's last
+           held frame was the word cropped off both edges — trap #5, fixed for THESIS
+           and missed here. Measured lum 0.216 with 12% of the frame past the
+           highlight clip, and the gas cut into CONTACT inherited all of it. */
+        height: b.final ? 2.35 : 2.3,
         font: 'Syncopate, "Arial Black", sans-serif',
         weight: 700,
         size: 96,

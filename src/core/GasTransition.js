@@ -33,6 +33,7 @@ uniform vec2  uAspect;
 uniform vec3  uEdgeColor;
 uniform float uEdgeStrength;
 uniform float uScale;
+uniform float uChurn;      // 1 normally, damped under prefers-reduced-motion
 
 varying vec2 vUv;
 
@@ -51,8 +52,10 @@ vec2 flow(vec2 uv, float t, float s){
 void main(){
   float p = clamp(uProgress, 0.0, 1.0);
 
-  // turbulence envelope: still at both ends, violent in the middle
-  float env = pow(sin(p * PI), 0.72);
+  // turbulence envelope: still at both ends, violent in the middle.
+  // uChurn damps only the ADVECTION, never the dissolve — the cut still happens
+  // and still reads as gas, it just stops thrashing the frame around.
+  float env = pow(sin(p * PI), 0.72) * uChurn;
 
   float t = uTime * 0.22;
 
@@ -141,6 +144,7 @@ export class GasTransition {
         // finer than the advection field: the break-up should read as filigree
         // burning through the frame, not as a handful of large blobs igniting
         uScale: { value: 4.2 },
+        uChurn: { value: 1 },
       },
     });
 

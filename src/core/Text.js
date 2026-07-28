@@ -13,12 +13,21 @@ import * as THREE from 'three';
 const DPI = 2.5;
 
 /** Measure + draw a single line of text into a tight canvas texture. */
+/* Core pass plus progressively wider haloes, as [blurPx, alpha].
+   The default is tuned for display type that fills a good part of the frame. Type
+   that lands small on screen needs a TIGHTER set: the blur radii here are fixed
+   against the glyph size, so on a narrow glyph a 20px halo is about as wide as the
+   stem, it closes the counters, and the glyph resolves as a blob once bloom is on
+   top of it. Pass `halo: TIGHT_HALO` for anything small in frame. */
+export const TIGHT_HALO = [[0, 1], [1.5, 0.16]];
+
 export function textTexture(text, {
   font = 'Syncopate, "Arial Black", sans-serif',
   weight = 700,
   size = 128,
   tracking = 0.06,
   pad = 0.35,
+  halo = [[0, 1], [2, 0.22], [8, 0.11], [20, 0.06]],
 } = {}) {
   const c = document.createElement('canvas');
   const x = c.getContext('2d');
@@ -43,7 +52,7 @@ export function textTexture(text, {
   // core, then progressively wider haloes. Kept light on purpose: heavy haloes
   // fill the counters and the letterforms stop reading as type once bloom is on.
   x.globalCompositeOperation = 'lighter';
-  for (const [blur, alpha] of [[0, 1], [2, 0.22], [8, 0.11], [20, 0.06]]) {
+  for (const [blur, alpha] of halo) {
     x.filter = blur ? `blur(${blur}px)` : 'none';
     x.globalAlpha = alpha;
     x.fillStyle = '#fff';
@@ -70,6 +79,10 @@ export function paragraphTexture(lines, {
   tracking = 0,
   align = 'left',
   width = 0,
+  // must be honoured here too — this used to be hardcoded, so every multi-line
+  // block silently ignored `halo` and any caller asking for TIGHT_HALO got the
+  // display-type default anyway. That is what kept the THESIS headlines fat.
+  halo = [[0, 1], [3, 0.20], [11, 0.10]],
 } = {}) {
   const c = document.createElement('canvas');
   const x = c.getContext('2d');
@@ -92,7 +105,7 @@ export function paragraphTexture(lines, {
   x.globalCompositeOperation = 'lighter';
 
   const ax = align === 'center' ? w / 2 : align === 'right' ? w - px * 0.6 : px * 0.6;
-  for (const [blur, alpha] of [[0, 1], [3, 0.20], [11, 0.10]]) {
+  for (const [blur, alpha] of halo) {
     x.filter = blur ? `blur(${blur}px)` : 'none';
     x.globalAlpha = alpha;
     x.fillStyle = '#fff';
