@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { NEUTRAL_GRADE } from './Grade.js';
 import { motion } from './motion.js';
+import { paceU } from './beat.js';
+import { ramp } from './math.js';
 
 /* A shot owns its own scene, camera, lighting and grade. That is the whole point:
    the old build had ONE scene and ONE camera lerping through it forever, which is
@@ -15,12 +17,18 @@ export class Shot {
    * @param {object} o.grade      per-shot colour grade
    * @param {number} o.edgeColor  colour the gas burns when transitioning OUT of this shot
    */
-  constructor({ id, label, scrollVh = 100, grade = NEUTRAL_GRADE, edgeColor = 0x9fd8ff }) {
+  constructor({ id, label, scrollVh = 100, grade = NEUTRAL_GRADE, edgeColor = 0x9fd8ff, key = 'low' }) {
     this.id = id;
     this.label = label;
     this.scrollVh = scrollVh;
     this.grade = grade;
     this.edgeColor = edgeColor;
+
+    /* 'high' | 'mid' | 'low' — SHOTLIST §4 R4. Not decoration: the overlay type is
+       light-on-dark, so a high-key set needs it inverted or the HUD, the rail and the
+       caption are white on white. Declared here rather than sniffed from the grade so
+       a shot cannot be high-key in the render and dark in the DOM. */
+    this.key = key;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 4000);
@@ -28,6 +36,57 @@ export class Shot {
     this.start = 0;
     this.end = 1;
     this.built = false;
+
+    /* How parked the camera is, 0..1 — SHOTLIST.md §4 R2.
+
+       Shots that use the dwell model write this every frame from `beatCurve`. It is
+       read outside the shot: the letterbox opens and the chromatic aberration goes to
+       zero while it is 1, because both of those exist to sell motion and both of them
+       damage type that is being held still to be read. A shot that never sets it
+       reports 0, which is the old behaviour exactly. */
+    this.dwell = 0;
+
+    // share of this shot's scroll spent inside the gas cut at either end; see clearP
+    this.bandIn = 0;
+    this.bandOut = 0;
+  }
+
+  /**
+   * Local progress with the gas cuts at either end taken out — 0 where this shot's
+   * incoming burn finishes, 1 where its outgoing burn begins.
+   *
+   * The transition band is a fixed slice of the WHOLE journey (see BAND), so the
+   * shorter the shot the larger the share of it that is spent underneath churning gas.
+   * At 150vh out of 1350 that is 22% of the shot at each end — which measured as the
+   * first and last of THESIS's five beats holding their dwell entirely inside a burn,
+   * i.e. two of the five could never be read. Beats belong in the clear.
+   */
+  clearP(localP) {
+    const a = this.bandIn;
+    const b = 1 - this.bandOut;
+    if (b <= a) return 0;
+    const v = (localP - a) / (b - a);
+    return v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+
+  /**
+   * Rate-limit a beat curve so a wheel flick cannot teleport between stations.
+   *
+   * Returns the same shape with `u` paced and `dwell` gated on it: while the paced
+   * value is still catching up the camera is genuinely in flight, whatever the raw
+   * scroll position says, and nothing downstream should be treating it as parked.
+   *
+   * @param {{u:number, dwell:number}} curve from `beatCurve`
+   * @param {number} dt
+   */
+  paceBeat(curve, dt) {
+    if (!this._pace) this._pace = { u: curve.u, v: 0 };
+    const u = paceU(this._pace, curve.u, dt);
+    // eased over a band rather than gated on an exact landing, so the dwell state
+    // comes up with the camera slowing instead of snapping on at the last frame
+    const off = Math.abs(u - Math.round(u));
+    const dwell = curve.dwell * ramp(off, 0.085, 0.008);
+    return { ...curve, u, dwell, moving: 1 - dwell };
   }
 
   build() {}
@@ -83,6 +142,17 @@ export class ShotSystem {
       acc += s.scrollVh;
       s.end = acc / this.totalVh;
     }
+
+    // how much of each shot the burns at its ends cost it — the first shot has no
+    // incoming burn and the last has no outgoing one. Capped so a very short shot
+    // still gets a third of itself in the clear rather than nothing.
+    const last = this.shots.length - 1;
+    this.shots.forEach((s, i) => {
+      const span = s.end - s.start;
+      const cost = span <= 0 ? 0 : Math.min(0.33, (BAND / 2) / span);
+      s.bandIn = i === 0 ? 0 : cost;
+      s.bandOut = i === last ? 0 : cost;
+    });
   }
 
   /** Which shot(s) are on screen at global progress P, and the transition mix. */
@@ -191,6 +261,10 @@ export class ShotSystem {
       this.active = nowActive;
       this.active.onEnter();
     }
+
+    /* Nothing is parked during a gas cut, whatever the shot on either side thinks —
+       the frame is being atomized, which is the most motion in the entire film. */
+    r.dwell = r.mix === null ? (r.from.dwell || 0) : 0;
     return r;
   }
 

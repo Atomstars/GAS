@@ -1,286 +1,334 @@
 import './style.css';
 
-import * as THREE from 'three';
 import Lenis from 'lenis';
-import gsap from 'gsap';
+import { WORK, LEDGER, THESIS, CONTACT, repoUrl, FILL } from './data/work.js';
+import { hero } from './heroes.js';
+import { startAtmosphere } from './bg.js';
+import { startTitle } from './title.js';
+import { startMotion } from './motion.js';
 
-import { Assets } from './core/Assets.js';
-import { input, initInput, updateInput } from './core/Input.js';
-import { Post } from './core/Post.js';
-import { GasTransition } from './core/GasTransition.js';
-import { ShotSystem } from './core/ShotSystem.js';
-import { Overlay } from './ui/Overlay.js';
-import { motion, onMotionChange } from './core/motion.js';
+/* Akash Govada — portfolio.
 
-import { TitleShot } from './shots/TitleShot.js';
-import { ThesisShot } from './shots/ThesisShot.js';
-import { GateShot } from './shots/GateShot.js';
-import { DavinaShot } from './shots/DavinaShot.js';
-import { JobAgentShot } from './shots/JobAgentShot.js';
-import { CafePosShot } from './shots/CafePosShot.js';
-import { HousingShot } from './shots/HousingShot.js';
-import { BuddyShot } from './shots/BuddyShot.js';
-import { GmatShot } from './shots/GmatShot.js';
-import { ContactShot } from './shots/ContactShot.js';
+   ── Why this is not the 3D film any more ──
 
-/* GAS — cinematic scroll-piloted portfolio.
-   Architecture: SHOTLIST.md. Scroll is the only verb. */
+   The previous build was a scroll-piloted WebGL film: nine bespoke 3D worlds, a
+   screen-space gas transition, a per-shot colour grade. It was technically the more
+   impressive artefact and it failed at the only job that matters here — a visitor
+   reached five acts of typography before seeing a single thing that had been built,
+   and the work itself was a one-line blurb and a repo link.
 
-/* One boot per page, enforced.
+   So the subject is on screen from the first scroll and the copy annotates it. Motion
+   is an accent: a cursor wipe, scroll-linked reveals, a sticky column that tracks the
+   chapter you are reading. Nothing here blocks content on an animation finishing, and
+   the whole page works with JavaScript disabled apart from the decoration.
 
-   Nothing in this module is idempotent: it constructs a WebGLRenderer, starts a
-   requestAnimationFrame loop and installs a Lenis instance. If the module is ever
-   evaluated twice — a stray second import, or an HMR update that re-runs it rather
-   than reloading the page — the second copy does not replace the first, it runs
-   ALONGSIDE it. Two render loops then compete for the GPU and both drive scroll,
-   and the page gets progressively heavier with each occurrence, which reads
-   exactly like the dev server "getting stuck". */
-if (window.__GAS_BOOTED) {
-  console.warn('GAS: already booted; ignoring duplicate module evaluation.');
-  throw new Error('GAS already booted');
-}
-window.__GAS_BOOTED = true;
+   The film is not deleted — src/shots/* and src/core/* are still in the tree — but
+   nothing imports it. */
 
-if (import.meta.hot) import.meta.hot.decline();   // full reload, never a hot swap
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const coarse = matchMedia('(pointer: coarse)').matches;
 
-history.scrollRestoration = 'manual';
-window.scrollTo(0, 0);
+/* ---------------------------------------------------------------- scrolling */
+/* Lenis stays. It is the one piece of the old build that was unambiguously right:
+   native scroll on a page of full-height sections lands hard, and every reveal below
+   is driven from scroll position rather than from a timeline, so smoothing the input
+   smooths all of them at once. Off entirely under reduced motion — inertia the
+   viewer did not ask for is exactly what that setting is about. */
+/* The page opens on a title, so a restored scroll position would drop the visitor into
+   the middle of a section with a fixed canvas over it. */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
-/* ------------------------------ renderer ------------------------------ */
-const canvas = document.getElementById('gl');
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  antialias: false,          // the composer multisamples instead
-  powerPreference: 'high-performance',
-  stencil: false,
-});
-/* Phones run this whole stack — nine worlds, a half-float composer and a HUGE
-   mipmap bloom — on a tile GPU with a fraction of the fill rate, and the pixel
-   ratio is the one knob that cuts cost quadratically. 1.5 on a coarse-pointer
-   display is still above the panel's effective resolving power for this material. */
-/* Pixel ratio is the one knob that cuts cost quadratically, and this film is the
-   best possible case for spending it: every frame goes through bloom, grain,
-   vignette and chromatic aberration, all of which destroy the high-frequency
-   detail that a 2x buffer exists to preserve. At dpr 2 the title alone was
-   shading ~100M simplex-noise evaluations per frame. 1.5 is 44% fewer pixels for
-   no visible loss on this material. */
-renderer.setPixelRatio(Math.min(devicePixelRatio, motion.touch ? 1.25 : 1.5));
-renderer.setSize(innerWidth, innerHeight);
-renderer.toneMapping = THREE.NoToneMapping;   // tone mapping happens in the composer
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setClearColor(0x000000, 1);
-
-const assets = new Assets(renderer);
-
-/* -------------------------------- shots -------------------------------- */
-const shots = new ShotSystem();
-shots.add(new TitleShot());
-shots.add(new ThesisShot());
-shots.add(new GateShot());          // the junction: rooms before the work
-shots.add(new DavinaShot(assets));
-shots.add(new JobAgentShot());
-shots.add(new CafePosShot());
-shots.add(new HousingShot());
-shots.add(new BuddyShot());
-shots.add(new GmatShot());
-shots.add(new ContactShot());
-shots.layout();
-
-const first = shots.shots[0];
-first.ensureBuilt();
-
-const post = new Post(renderer, first.scene, first.camera);
-post.snapGrade(first.grade);
-post.fade = 0;                                  // open from black
-
-const gas = new GasTransition(renderer);
-const overlay = new Overlay(shots);
-// the gate's buttons scroll via Lenis so a jump feels like flight, not a snap
-queueMicrotask(() => { overlay.lenis = lenis; });
-
-/* ------------------------------- scrolling ------------------------------ */
-document.getElementById('scroll-space').style.height = `${shots.totalVh}vh`;
-
-/* Smoothed scroll is inertia the viewer did not ask for — the page carries on
-   after they stop. Under prefers-reduced-motion it hands back to native scroll. */
-const lenis = new Lenis({
-  smoothWheel: motion.smoothScroll,
-  syncTouch: false,
-  lerp: motion.smoothScroll ? 0.075 : 1,
-  wheelMultiplier: 0.9,
-  touchMultiplier: 1.6,
-});
-
-function progress() {
-  const max = document.documentElement.scrollHeight - innerHeight;
-  return max <= 0 ? 0 : THREE.MathUtils.clamp(window.scrollY / max, 0, 1);
-}
-
-/* --------------------------------- size --------------------------------- */
-/* A hidden/zero-height viewport reports innerWidth 0, which sizes the drawing
-   buffer to 1x1 — every render then goes into a single pixel. Harmless in a real
-   browser window, fatal for offscreen review, so the floor is unconditional. */
-function resize(w = innerWidth || 1280, h = innerHeight || 720) {
-  renderer.setSize(w, h);
-  shots.setSize(w, h);
-  post.setSize(w, h);
-  const dpr = Math.min(devicePixelRatio, 2);
-  gas.setSize(Math.floor(w * dpr), Math.floor(h * dpr));
-}
-addEventListener('resize', () => resize());   // the Event must not land in `w`
-resize();
-
-/* --------------------------------- loop --------------------------------- */
-const clock = new THREE.Clock();
-initInput();
-
-let prevP = 0;
-let smoothVel = 0;
-let showTime = 0;
-
-/* The body of the loop, separated from the rAF pump so it can be stepped
-   deterministically. This is the REAL path — Lenis, the velocity smear and all —
-   not a harness reimplementation of it, so driving `tick` verifies what ships. */
-function tick(time, forcedDt) {
-  lenis.raf(time);
-
-  const dt = forcedDt ?? Math.min(clock.getDelta(), 0.05);
-  showTime += dt;
-  const t = showTime;
-  const P = progress();
-
-  updateInput(dt);
-
-  // scroll velocity -> visible smear. normalised so a brisk flick reads ~1.
-  const dP = P - prevP;
-  prevP = P;
-  const raw = Math.min(1, Math.abs(dP) / (dt || 0.016) / 0.55);
-  smoothVel += (raw - smoothVel) * (1 - Math.exp(-dt * (raw > smoothVel ? 14 : 5)));
-  if (Math.abs(dP) > 1e-6) input.dir = Math.sign(dP);
-  input.vel = smoothVel;
-  post.setVelocity(smoothVel * motion.smear, input.dir);
-
-  const r = shots.update(P, dt, t);
-
-  let turbulence = 0;
-  if (r.mix === null) {
-    post.setScene(r.from.scene, r.from.camera);
-    post.setGrade(r.from.grade);
-  } else {
-    // the outgoing world atomizes, the gas churns, the next world recondenses
-    turbulence = GasTransition.envelope(r.mix);
-    gas.capture(r.from, r.to);
-    gas.set(r.mix, t, r.mix < 0.5 ? r.from.edgeColor : r.to.edgeColor);
-    post.setScene(gas.scene, gas.camera);
-    post.setGrade(r.mix < 0.5 ? r.from.grade : r.to.grade);
+let lenis = null;
+if (!reduced) {
+  try {
+    lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.9, syncTouch: false });
+    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  } catch (e) {
+    /* Lenis intercepts the wheel. If it half-initialises it can swallow the gesture
+       and leave the page unable to scroll at all — which, on a site whose first screen
+       is a title, looks exactly like a site with nothing after the title. Native scroll
+       is the fallback and it is never worse than not scrolling. */
+    console.warn('smooth scroll unavailable, using native:', e);
+    lenis?.destroy?.();
+    lenis = null;
   }
-  post.setTurbulence(turbulence);
-  post.update(dt);
-  post.render();
-
-  overlay.update(P, r, turbulence);
-  return { P, dt, t, r, vel: smoothVel, turbulence };
 }
 
-function frame(time) {
-  requestAnimationFrame(frame);
-  tick(time);
+document.querySelectorAll('a[href^="#"]').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    const el = document.querySelector(a.getAttribute('href'));
+    if (!el) return;
+    e.preventDefault();
+    if (lenis) lenis.scrollTo(el, { offset: -24, duration: 1.1 });
+    else el.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+/* ------------------------------------------------------------------ content */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
+));
+
+/* Approach */
+document.getElementById('thesis-list').innerHTML = THESIS.map((t) => `
+  <li class="reveal">
+    <span class="idx">${esc(t.n)}</span>
+    <h3>${esc(t.head)}</h3>
+    <p>${esc(t.body)}</p>
+  </li>`).join('');
+
+/* The work.
+
+   Structure per project: a sticky spec column on the left, a stack of chapter frames
+   on the right. The column holds still while the chapters move past it, so the reader
+   always has the project's identity, stack and links on screen — which is the thing a
+   segmented, slide-by-slide layout keeps taking away and giving back. */
+function linkRow(p) {
+  const out = [];
+  if (p.links.live) out.push(`<a class="lnk" href="${esc(p.links.live)}" target="_blank" rel="noopener">Live demo <span aria-hidden="true">↗</span></a>`);
+  if (p.links.repo) out.push(`<a class="lnk" href="${esc(repoUrl(p.links.repo))}" target="_blank" rel="noopener">Source <span aria-hidden="true">↗</span></a>`);
+  if (p.links.caseStudy) out.push(`<a class="lnk" href="${esc(p.links.caseStudy)}">Read the case <span aria-hidden="true">↗</span></a>`);
+  /* An absent demo is stated, not hidden. A visitor notices the missing link either
+     way; saying why is the difference between a gap and a reason. */
+  if (!p.links.live) {
+    out.push(`<p class="lnk none">${esc(p.links.liveNote || 'No public demo.')}</p>`);
+  }
+  return out.join('');
 }
-requestAnimationFrame(frame);
 
-/* open from black once the first frame is genuinely on screen */
-requestAnimationFrame(() => {
-  gsap.to(post, { fade: 1, duration: 1.6, ease: 'power2.out', delay: 0.15 });
-  document.body.classList.add('ready');
+document.getElementById('work-list').innerHTML = WORK.map((p) => `
+  <article class="proj" id="${esc(p.id)}" data-accent="${esc(p.accent)}" style="--accent:${esc(p.accent)}">
+    <div class="proj-col">
+      <div class="proj-sticky">
+        <span class="proj-n">${esc(p.n)}</span>
+        <h3 class="proj-name">${esc(p.name)}</h3>
+        <p class="proj-claim">${esc(p.claim)}</p>
+        <dl class="spec">
+          <dt>Category</dt><dd>${esc(p.category)}</dd>
+          <dt>Year</dt><dd>${esc(p.year)}</dd>
+          <dt>Role</dt><dd>${esc(p.role)}</dd>
+          <dt>Stack</dt><dd class="chips">${p.stack.map((s) => `<span>${esc(s)}</span>`).join('')}</dd>
+        </dl>
+        <div class="proj-links">${linkRow(p)}</div>
+        <ol class="chap-nav" aria-label="Chapters in ${esc(p.name)}">
+          ${p.chapters.map((c, i) => `<li data-i="${i}"><span>${esc(c.n)}</span>${esc(c.label)}</li>`).join('')}
+        </ol>
+      </div>
+    </div>
+
+    <div class="proj-frames">
+      ${p.chapters.map((c, i) => `
+        <section class="chap reveal" data-i="${i}" aria-labelledby="${esc(p.id)}-${esc(c.n)}">
+          <figure class="chap-hero">${hero(c, p)}</figure>
+          <div class="chap-copy">
+            <p class="chap-label"><span>${esc(c.n)}</span> ${esc(c.label)}</p>
+            <h4 id="${esc(p.id)}-${esc(c.n)}">${esc(c.head)}</h4>
+            <p>${esc(c.body)}</p>
+            ${c.aside ? `
+              <dl class="aside">
+                <dt>Model's job</dt><dd>${esc(c.aside.role)}</dd>
+                <dt>Guardrail</dt><dd>${esc(c.aside.guardrail)}</dd>
+                <dt>Not the model's</dt><dd>${esc(c.aside.notModel)}</dd>
+              </dl>` : ''}
+          </div>
+        </section>`).join('')}
+    </div>
+  </article>`).join('');
+
+/* Ledger */
+document.getElementById('ledger-list').innerHTML = LEDGER.map((l) => `
+  <li class="reveal">
+    <a href="${esc(repoUrl(l.repo))}" target="_blank" rel="noopener">
+      <span class="led-name">${esc(l.name)}</span>
+      <span class="led-cat">${esc(l.category)} · ${esc(l.year)}</span>
+      <span class="led-line">${esc(l.line)}</span>
+      <span class="led-stack">${l.stack.map(esc).join(' · ')}</span>
+      <span class="led-go" aria-hidden="true">↗</span>
+    </a>
+  </li>`).join('');
+
+document.getElementById('contact-links').innerHTML = `
+  <a class="cta" href="mailto:${esc(CONTACT.email)}">${esc(CONTACT.email)}</a>
+  <a class="cta ghost" href="${esc(CONTACT.github)}" target="_blank" rel="noopener">github.com/Atomstars</a>`;
+
+/* Any figure that has not been checked is rendered as a visible placeholder rather
+   than quietly omitted or, worse, guessed. See VERIFY.md. */
+document.querySelectorAll('.mtx-val').forEach((el) => {
+  if (el.textContent.trim() === FILL) el.closest('.mtx-cell')?.classList.add('is-fill');
 });
 
-/* the OS setting can change while the page is open */
-onMotionChange((m) => {
-  lenis.options.lerp = m.smoothScroll ? 0.075 : 1;
-  lenis.options.smoothWheel = m.smoothScroll;
-  gas.material.uniforms.uChurn.value = m.churn;
-});
-gas.material.uniforms.uChurn.value = motion.churn;
+/* ------------------------------------------------ atmosphere + motion layer */
+/* The page is content-first and the depth runs behind it. Neither is decoration for
+   the other: the structure is what a reader needs, the atmosphere is what makes it a
+   place rather than a document. */
+/* Each of these is isolated.
 
-/* ---------------------------- warm the film ----------------------------
-   Lazy building meant every world was constructed synchronously at the exact
-   moment the viewer first scrolled into it — measured 78ms for Davina, 70ms for
-   GMAT, 53ms for Housing, ~310ms in total. Each one is a hard freeze of the main
-   thread landing mid-scroll, which is what the film read as: stalling, catching,
-   never smooth.
+   They were not, and it cost the whole site: one subsystem failing took the others
+   with it, and because the motion layer is what un-hides content, the page rendered as
+   a title and nothing else. Decoration must never be able to fail in a way that
+   removes the writing. */
+const safely = (name, fn) => {
+  try { return fn(); } catch (e) { console.warn(`${name} unavailable:`, e); return null; }
+};
 
-   So build them ahead of time, one per idle slot, so the cost lands in the gaps
-   between frames instead of under the viewer's hand. `ensureBuilt` stays the
-   fallback: scroll faster than the warm-up and the shot still builds on demand,
-   exactly as before. */
-(async function warm() {
-  // arrow, not a bare reference: requestIdleCallback throws Illegal Invocation
-  // when detached from window
-  const idle = () => new Promise((res) => (window.requestIdleCallback
-    ? window.requestIdleCallback(res, { timeout: 1500 })
-    : setTimeout(res, 32)));
+const atmos = reduced ? null : safely('atmosphere', () => startAtmosphere(document.getElementById('atmos')));
+if (!atmos) document.getElementById('atmos')?.remove();
 
-  for (const shot of shots.shots) {
-    if (!shot.built) {
-      await idle();
-      shot.ensureBuilt();
+/* ACT 0. The gas condenses into the wordmark as you enter the page and lets go as you
+   leave it. Falls back to the plain <h1>, which is the real mark either way. */
+const gasCanvas = document.getElementById('gasfield');
+const gasSection = document.getElementById('gas');
+const gas = reduced ? null : safely('title', () => startTitle(gasCanvas, gasSection));
+if (!gas) { gasCanvas?.remove(); gasSection?.classList.add('no-gl'); }
+
+/* The canvas is opaque and fixed, so getting it out of the way once the title is past
+   cannot be the render loop's job alone — if that loop stalls, an opaque black sheet
+   stays over the viewport. A scroll listener is a second, independent path to the same
+   result, and scroll fires when rAF does not. */
+if (gas && gasCanvas) {
+  const hideIfPast = () => {
+    const r = gasSection.getBoundingClientRect();
+    gasCanvas.style.opacity = r.bottom < -40 ? '0' : '1';
+  };
+  addEventListener('scroll', hideIfPast, { passive: true });
+  hideIfPast();
+}
+
+// dev handle: the condensation is time-driven, so being able to inspect it without a
+// screenshot is the difference between measuring it and guessing
+if (import.meta.env?.DEV && gas) window.__TITLE = gas;
+
+/* One loop owns all of it — reveals, the hero animations, the depth, the sticky
+   column's current chapter, and the colour the atmosphere is taking. It is driven from
+   scroll position rather than from IntersectionObserver, because IO measured as not
+   firing at all in the target browser and a page whose text only appears if an
+   observer fires is a page that sometimes has no text. See src/motion.js. */
+safely('motion', () => startMotion({
+  reduced,
+  onAccent: (hex) => atmos?.setAccent(hex),
+}));
+
+/* -------------------------------------------------------------- cursor wipe */
+/* The effect you asked for, and it is genuinely an ERASE rather than a light.
+
+   ── Why the veil LIFTS rather than darkens ──
+
+   The obvious build is a dark veil the cursor punches holes in. On a page whose
+   background is already #08090b that does nothing you can see: dark over dark. The
+   first attempt also accumulated — painting low-alpha black every frame walks toward
+   opaque, so leaving the mouse still for ten seconds faded the entire site out.
+
+   So the veil is HAZE, blended with screen: it lifts the blacks, flattens the contrast
+   and puts a fine grain over everything, exactly like an unclean lens. The cursor
+   erases the haze, and what is revealed underneath is the page at full contrast. That
+   is what "the landscape cleans" actually looks like — you are wiping the surface, not
+   shining a torch through it.
+
+   The trail is a fixed-length ring of stamps with their own lifetimes rather than an
+   accumulating buffer, so the veil has a hard ceiling and cannot drift.
+
+   Removed on touch (no cursor to follow) and under reduced motion. */
+const veil = document.getElementById('veil');
+if (reduced || coarse) {
+  veil.remove();
+} else {
+  const ctx = veil.getContext('2d', { alpha: true });
+  /* Half resolution. The veil is soft gradients and grain with no detail to lose, and
+     a full-screen composite every frame is the one thing here that could cost real
+     time on a laptop GPU. */
+  const DPR = 0.5;
+  /* Wide and gentle. At a tight radius and near-full erase the cleaned patch read as a
+     black hole punched in the page rather than as a wiped surface — the giveaway is a
+     hard-edged blob, and the fix is a brush wider than it is strong. */
+  const R = 230 * DPR;
+  const HAZE = 'rgba(58, 68, 92, 0.34)';
+
+  let w = 0;
+  let h = 0;
+  let grain = null;
+
+  /* One noise tile, generated once and repeated. Grain is what stops the haze reading
+     as a flat grey rectangle — it gives the "dirty" state a texture to be cleaned off. */
+  const makeGrain = () => {
+    const g = document.createElement('canvas');
+    g.width = g.height = 96;
+    const gx = g.getContext('2d');
+    const img = gx.createImageData(96, 96);
+    for (let i = 0; i < 96 * 96; i++) {
+      const v = 120 + Math.random() * 135;
+      img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+      img.data[i * 4 + 3] = 16;
+    }
+    gx.putImageData(img, 0, 0);
+    return ctx.createPattern(g, 'repeat');
+  };
+
+  const size = () => {
+    w = veil.width = Math.max(1, Math.floor(innerWidth * DPR));
+    h = veil.height = Math.max(1, Math.floor(innerHeight * DPR));
+    grain = makeGrain();          // the pattern is bound to the context, so rebuild it
+  };
+  size();
+  addEventListener('resize', size);
+
+  /* Fixed-length trail. Each stamp keeps a life, so the wipe heals on its own clock
+     instead of on how often the canvas happens to be repainted. */
+  const N = 26;
+  const trail = Array.from({ length: N }, () => ({ x: -999, y: -999, life: 0 }));
+  let head = 0;
+  let lastX = -999;
+  let lastY = -999;
+  let mx = -999;
+  let my = -999;
+
+  addEventListener('pointermove', (e) => { mx = e.clientX * DPR; my = e.clientY * DPR; }, { passive: true });
+  addEventListener('pointerleave', () => { mx = -999; my = -999; });
+
+  const stamp = (x, y) => { trail[head] = { x, y, life: 1 }; head = (head + 1) % N; };
+
+  let prev = performance.now();
+  (function paint(now) {
+    requestAnimationFrame(paint);
+    const dt = Math.min(0.05, (now - prev) / 1000);
+    prev = now;
+
+    /* Lay stamps ALONG the segment travelled since the last frame. A fast sweep covers
+       more ground than the brush is wide, and stamping only the current position
+       leaves a dotted line rather than a stroke. */
+    if (mx > -100) {
+      if (lastX < -100) stamp(mx, my);
+      else {
+        const dist = Math.hypot(mx - lastX, my - lastY);
+        const steps = Math.min(12, Math.max(1, Math.round(dist / (R * 0.3))));
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          stamp(lastX + (mx - lastX) * t, lastY + (my - lastY) * t);
+        }
+      }
+      lastX = mx;
+      lastY = my;
     }
 
-    /* And COMPILE. This is the half that actually mattered.
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = HAZE;
+    ctx.fillRect(0, 0, w, h);
+    if (grain) { ctx.fillStyle = grain; ctx.fillRect(0, 0, w, h); }
 
-       Building a shot creates its geometry and materials, but WebGL does not
-       compile and link a program until that material is first RENDERED — so the
-       stall simply moved from "the first time the shot is built" to "the first
-       frame the shot is visible", which is the same moment in the scroll. Measured
-       first-render cost per shot: Housing 532ms, Title 313ms, Davina 304ms, Thesis
-       283ms, against ~13-18ms steady state. Half a second of frozen main thread,
-       landing exactly as the viewer scrolls into a world.
-
-       compileAsync hands the linking to the driver without blocking (it uses
-       KHR_parallel_shader_compile where available). */
-    await idle();
-    await renderer.compileAsync?.(shot.scene, shot.camera);
-
-    /* Then render it once, off-screen, into a spare half-float target.
-
-       compileAsync alone is not quite enough: three.js keys a program partly on
-       the state of the render target it will be drawn into, so compiling against
-       the default framebuffer can produce a variant the composer then has to
-       compile again. Drawing into the gas transition's own buffer is the same
-       format the composer and every transition use, so this warms the variant that
-       is actually going to be needed — and it costs nothing extra, because the
-       real work was already done by compileAsync above. */
-    await idle();
-    const prev = renderer.getRenderTarget();
-    renderer.setRenderTarget(gas.rtFrom);
-    renderer.render(shot.scene, shot.camera);
-    renderer.setRenderTarget(prev);
-  }
-})();
-
-/* dev-only handle for inspecting shots without a screenshot */
-if (import.meta.env?.DEV) {
-  window.__GAS = { THREE, renderer, shots, post, gas, overlay, lenis, progress, tick, resize };
-  import('./dev/harness.js').then((m) => m.installHarness(window.__GAS));
+    ctx.globalCompositeOperation = 'destination-out';
+    for (const s of trail) {
+      if (s.life <= 0) continue;
+      s.life = Math.max(0, s.life - dt * 0.62);        // heals over about 1.6s
+      const a = s.life * s.life;                       // holds open, then closes quickly
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, R);
+      g.addColorStop(0, `rgba(0,0,0,${0.82 * a})`);
+      g.addColorStop(0.45, `rgba(0,0,0,${0.30 * a})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(s.x - R, s.y - R, R * 2, R * 2);
+    }
+  })(prev);
 }
 
-/* ------------------------------- cursor -------------------------------- */
-/* The custom cursor is hidden on touch and under reduced motion, so neither its
-   rAF loop nor its listeners should exist there — it was writing a transform every
-   frame, forever, to an element nobody could see. */
-const cursor = document.getElementById('cursor');
-if (!motion.touch && !motion.reduced) {
-  let mx = innerWidth / 2, my = innerHeight / 2, cx = mx, cy = my;
-  addEventListener('pointermove', (e) => { mx = e.clientX; my = e.clientY; });
-  (function cursorLoop() {
-    requestAnimationFrame(cursorLoop);
-    cx += (mx - cx) * 0.18;
-    cy += (my - cy) * 0.18;
-    cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
-  })();
-  document.addEventListener('pointerover', (e) => {
-    cursor.classList.toggle('hot', !!e.target.closest('a'));
-  });
-} else {
-  cursor.remove();
-}
+document.body.classList.add('ready');

@@ -78,6 +78,7 @@ export class Post {
     this._target = structuredClone(NEUTRAL_GRADE);
     this.fade = 1;
     this.turbulence = 0;
+    this.dwell = 0;
   }
 
   /** Swap what the composer renders. The effect pass camera is left alone —
@@ -104,9 +105,9 @@ export class Post {
     for (const key of ['lift', 'gamma', 'gain']) {
       for (let i = 0; i < 3; i++) c[key][i] = lerp(c[key][i], t[key][i], k);
     }
-    c.sat = lerp(c.sat, t.sat, k);
-    c.contrast = lerp(c.contrast, t.contrast, k);
-    c.bloom = lerp(c.bloom, t.bloom, k);
+    for (const key of ['sat', 'contrast', 'bloom', 'vignette', 'vignetteOffset', 'grain', 'bloomThreshold']) {
+      c[key] = lerp(c[key], t[key], k);
+    }
 
     this.grade.lift.fromArray(c.lift);
     this.grade.gamma.fromArray(c.gamma);
@@ -124,9 +125,23 @@ export class Post {
     // grain carry the sense of heat instead; they add energy without adding light.
     const heat = this.turbulence + this.velocity.amount * 0.7;
     this.bloom.intensity = c.bloom * BLOOM_GAIN + heat * 0.35;
-    const o = 0.0009 + heat * 0.0055;
+
+    /* Aberration goes to ZERO while the camera is parked — SHOTLIST §4 R4.
+
+       It is a motion effect: it says the lens is under load. Held on a stationary
+       frame it is just damage, and specifically it is damage to the one thing a dwell
+       exists for. HANDOFF trap 12 already recorded that it tears every thin bright
+       line in the film; a beat at rest is precisely when the viewer has time to see
+       that happening. The heat coupling still surges it during a gas cut and under
+       fast scroll, which is where it earns its keep — and `dwell` is 0 in both. */
+    const o = (0.0009 + heat * 0.0055) * (1 - this.dwell);
     this.chroma.offset.set(o, o);
-    this.grain.blendMode.opacity.value = 0.28 + heat * 0.14;
+    this.grain.blendMode.opacity.value = c.grain + heat * 0.14;
+
+    // per-shot now, not global — see the note on NEUTRAL_GRADE
+    this.bloom.luminanceMaterial.threshold = c.bloomThreshold;
+    this.vignette.darkness = c.vignette;
+    this.vignette.offset = c.vignetteOffset;
   }
 
   /** @param {number} v 0..1 normalised scroll speed  @param {number} dirY -1..1 */
@@ -137,6 +152,9 @@ export class Post {
 
   /** 0 at rest, ->1 at peak churn of a gas transition. */
   setTurbulence(env) { this.turbulence = env; }
+
+  /** 0..1 from the active shot's dwell — see the aberration note in `update`. */
+  setDwell(v) { this.dwell = v; }
 
   render() { this.composer.render(); }
 

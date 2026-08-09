@@ -31,6 +31,11 @@ export function installHarness(ctx) {
         post.setGrade(r.mix < 0.5 ? r.from.grade : r.to.grade);
       }
       post.setTurbulence(turbulence);
+      // the dwell state is part of the frame — aberration and the letterbox both key
+      // off it — so a harness frame that skipped it would not be the shipped frame
+      post.setDwell(r.dwell);
+      ctx.setBars?.(r.dwell);
+      ctx.setKey?.((r.mix === null || r.mix < 0.5 ? r.from : r.to).key);
       post.update(dt);
       if (i === warm - 1) {
         post.render();
@@ -204,7 +209,10 @@ export function installHarness(ctx) {
     post.fade = 1;
     const title = shots.shots.find((s) => s.id === 'title');
     if (title) { title.revealed = true; title.cond = 1; }
-    document.body.classList.add('ready', 'title-in');
+    // `filmed` is what main.js adds once the opening reveal has played; without it
+    // the letterbox is still on its 1.4s transition and every shot reviewed here
+    // shows bars that lag the dwell they are supposed to be reporting
+    document.body.classList.add('ready', 'title-in', 'filmed');
   }
 
   settle();

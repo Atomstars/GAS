@@ -21,6 +21,13 @@ const DPI = 2.5;
    top of it. Pass `halo: TIGHT_HALO` for anything small in frame. */
 export const TIGHT_HALO = [[0, 1], [1.5, 0.16]];
 
+/* No halo at all. Correct for INK type — see the `ink` option on textPlane.
+
+   A halo exists to give bloom a falloff to catch on the edge of a glyph that is acting
+   as a light source. Ink is not a light source; it is pigment sitting on a lit surface,
+   and a halo on pigment is a drop shadow. Every high-key shot uses this. */
+export const NO_HALO = [[0, 1]];
+
 export function textTexture(text, {
   font = 'Syncopate, "Arial Black", sans-serif',
   weight = 700,
@@ -105,6 +112,7 @@ export function paragraphTexture(lines, {
   x.globalCompositeOperation = 'lighter';
 
   const ax = align === 'center' ? w / 2 : align === 'right' ? w - px * 0.6 : px * 0.6;
+  const padX = (px * 0.6) / w;      // where the glyphs actually start, 0..1 across the plane
   for (const [blur, alpha] of halo) {
     x.filter = blur ? `blur(${blur}px)` : 'none';
     x.globalAlpha = alpha;
@@ -121,7 +129,13 @@ export function paragraphTexture(lines, {
   tex.magFilter = THREE.LinearFilter;
   tex.generateMipmaps = true;
   tex.anisotropy = 8;
-  return { texture: tex, aspect: w / h };
+  /* `padX` is what makes left-aligned type possible from outside this module.
+
+     The canvas is padded so haloes and overhangs are not clipped, so the glyphs do not
+     start at the plane's left edge — they start `padX` of the way across it. Without
+     that number a caller can only ever centre a block, which is why every layout in
+     this film was centred: not a design decision, a missing return value. */
+  return { texture: tex, aspect: w / h, padX };
 }
 
 const vert = /* glsl */ `
@@ -144,6 +158,7 @@ uniform float uOpacity;
 uniform float uWipe;
 uniform float uWipeWidth;
 uniform float uGlow;
+uniform float uInk;
 varying vec2 vUv;
 
 void main(){
@@ -155,6 +170,23 @@ void main(){
   if (uWipe >= 0.0) {
     lit  = smoothstep(uWipe + uWipeWidth, uWipe - uWipeWidth * 0.2, vUv.x);
     band = 1.0 - smoothstep(0.0, uWipeWidth, abs(vUv.x - uWipe));
+  }
+
+  /* INK. Pigment on a lit surface, not a light source.
+
+     Additive type only works on black — add a dark-blue glyph to a near-white set and
+     you get a slightly-less-white glyph, i.e. nothing. Here coverage is ALPHA and the
+     colour is the pigment, so the type is genuinely darker than what it sits on. The
+     wipe still reads, as ink laying down: the leading edge carries uHot, which for a
+     high-key set is the accent rather than white.
+
+     (No backticks in here. HANDOFF trap 8 — one inside a GLSL comment terminates the
+     JS template literal and the file dies with a SyntaxError pointing nowhere near
+     the cause. It cost time again writing this very block.) */
+  if (uInk > 0.5) {
+    vec3 pigment = mix(uColor, uHot, band * 0.9);
+    gl_FragColor = vec4(pigment, cov * lit * uOpacity);
+    return;
   }
 
   // The hot core is driven by cov^3 rather than cov, so only the solid interior
@@ -180,9 +212,13 @@ export function textPlane(text, {
   glow = 1.1,
   wipeWidth = 0.09,
   paragraph = null,
+  /* Pigment instead of light. Required on any high-key set — see the shader note.
+     Ink is alpha-blended and depth-tested against the geometry it sits on, so it can
+     be occluded by the set the way a printed panel is. */
+  ink = false,
   ...textOpts
 } = {}) {
-  const { texture, aspect } = paragraph
+  const { texture, aspect, padX = 0 } = paragraph
     ? paragraphTexture(paragraph, textOpts)
     : textTexture(text, textOpts);
 
@@ -191,7 +227,7 @@ export function textPlane(text, {
     fragmentShader: frag,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
+    blending: ink ? THREE.NormalBlending : THREE.AdditiveBlending,
     uniforms: {
       uMap: { value: texture },
       uColor: { value: new THREE.Color(color) },
@@ -200,6 +236,7 @@ export function textPlane(text, {
       uWipe: { value: -1 },
       uWipeWidth: { value: wipeWidth },
       uGlow: { value: glow },
+      uInk: { value: ink ? 1 : 0 },
     },
   });
 
@@ -207,6 +244,9 @@ export function textPlane(text, {
   mesh.scale.set(height * aspect, height, 1);
   mesh.frustumCulled = false;
   mesh.userData.aspect = aspect;
+  mesh.userData.padX = padX;
+  /** Put the first glyph of a left-aligned block at world x, accounting for padding. */
+  mesh.alignLeft = (x) => { mesh.position.x = x + mesh.scale.x * (0.5 - padX); return mesh; };
   mesh.setOpacity = (v) => { mat.uniforms.uOpacity.value = v; };
   mesh.setWipe = (v) => { mat.uniforms.uWipe.value = v; };
   mesh.setColor = (c) => { mat.uniforms.uColor.value.set(c); };

@@ -2,6 +2,12 @@
 
 The production bible. Every frame is built against this document.
 
+> **Amended by `GAS-REBUILD-BRIEF.md`.** §4 below now carries R1–R7 and replaces the old
+> rules 1 and 3. §1 (gas as the medium), §2 (the match-cut rule) and §6 (Davina look-dev)
+> stand unchanged. Where this document and the brief disagree on anything else, the brief
+> wins. §3's act structure is superseded by the brief's route: the six worlds are cut to
+> three flagships and THE WALL becomes the centrepiece.
+
 ---
 
 ## 1. The core idea
@@ -64,15 +70,107 @@ That inversion is fixed here by making scroll duration an explicit per-shot desi
 
 ## 4. Rules that apply to every frame
 
-1. **No clicking.** Scroll is the only verb. Links appear only at CONTACT and on project CTAs.
-2. **Post-processing is not optional.** Bloom, grain, vignette, chromatic aberration, AgX
-   tonemap and a **per-shot color grade** are part of the frame, not a filter on top.
-   Every shot declares its own grade — that is how each project reads as its own sector.
-3. **One key light.** Each world is lit by a single dominant source with everything else
-   falling to black. Flat ambient lighting is what made the old build look like a toy.
-4. **Long lenses.** FOV 28–35, not 60. Compression is what makes CG read as photographed.
-5. **Nothing is a radial-gradient sprite.** Glows come from real geometry + bloom.
-6. **Motion never fully stops.** Even at rest: drift, precession, particulate.
+### R1 — Scroll is how you travel. Choice is how you arrive.
+*(replaces the old "no clicking")*
+
+The film moves on scroll alone. But the work is a destination, not scenery — at THE WALL
+and inside every project world, the visitor may act. Every interactive target must also be
+reachable by **scrolling past it** (nothing is ever blocked) and by **keyboard** (nothing is
+mouse-only). The old rule was written to stop the site becoming a menu; it ended up stopping
+the site having a door. A gate you fly through is a corridor with signposts.
+
+### R2 — Arrive and dwell.
+**Every shot is TRAVEL → ARRIVE → DWELL → DEPART, not a linear pan.**
+
+Camera position is an eased, *segmented* function of local scroll, never a lerp. In the DWELL
+segment the camera is parked — ambient drift only, **≤0.4 units of translation** — and type is
+stationary, at full opacity, at final size, and interactive. A beat that never comes to rest
+was never a frame.
+
+Budget per beat: `travel 0.28 · dwell 0.44 · depart 0.28`. Dwell never below **0.35**.
+
+Implemented once, in `core/beat.js`, so every shot inherits it:
+
+| Export | Does |
+|---|---|
+| `beatCurve(localP, count)` | the segmented curve. Returns `u` (flat at an integer while parked), `phase`, and `dwell` |
+| `stationAt(stations, u)` | `u` → a position, extrapolating the entry and exit stations |
+| `beatPresence(u, i)` | a beat's opacity and reveal wipe, tied to `u` rather than to distance |
+| `dwellDrift(t, amp)` | ambient drift for a parked camera, capped at 0.4 |
+
+A shot writes `this.dwell` every frame from `beatCurve`. `ShotSystem` surfaces it, `Post`
+kills the aberration on it and the letterbox retracts on it — see R4. During a gas cut the
+dwell is forced to 0; nothing is parked while the frame is being atomized.
+
+**Presence is a function of `u`, not of distance to the lens.** That is what makes trap 5
+structural instead of hand-tuned per shot: a beat is guaranteed dark before the camera
+reaches its plane, whatever the geometry it sits in. The reveal wipe must finish before the
+dwell begins, or a frame grabbed at rest catches the film mid-wipe.
+
+### R3 — Transition vocabulary.
+*(replaces "gas cut on every act change")*
+
+**The gas cut is the brand punctuation, not the only punctuation.** Five moves, used
+deliberately. Four live in `core/transitions/` as pure functions of a 0..1 parameter; the
+gas cut stays in `core/GasTransition.js` because it is the only one that operates on the
+whole frame rather than inside a shot.
+
+| Move | Where | Feel |
+|---|---|---|
+| **Gas atomize** | Act boundaries ONLY: TITLE→THESIS, WALL→WORLD, WORLD→WALL, →CONTACT | The signature. Rare = strong |
+| **Aperture** | Entering a project from the wall: the title's frame dilates and you fall through it | Choice honoured |
+| **Whip-pan match cut** | Between beats *inside* a world | Edit rhythm |
+| **Rack focus** | Foreground type ↔ background world | Attention transfer |
+| **Light-lead** | A moving key light precedes the camera and drags the next set in | Continuity |
+
+**Match-cut rule (§2) still applies:** the last shape of N and the first shape of N+1 must
+rhyme. Never cut on nothing.
+
+### R4 — Value keys.
+*(replaces "everything falls to black")*
+
+**Each world declares a KEY, not just a hue.** At least two featured worlds must be
+*high-key* — bright, near-white, overexposed, shadows lifted. A film that is dark for 100%
+of its runtime has no dark.
+
+Floor on every grade: `lift ≥ 0.035`. Vignette ≤ 0.35. Grain ≤ 0.045. Chromatic aberration
+0.0006 base and **0 during dwell** — it is a motion effect, and held on a stationary frame
+it is just damage to the one thing the dwell exists for (trap 12). Letterbox bars animate to
+0 during dwell and return during travel. **The film ends on light, not black.**
+
+### R5 — Evidence over adjectives.
+
+No sentence ships that a sceptical senior engineer could not verify or interrogate. Every
+project carries problem, constraint, build, AI and outcome. Headlines ≤ 6 words, bodies
+45–70 words. `stack` is technologies only; roles and disciplines live in a separate field.
+**Never invent a metric** — emit `[FILL]` and list it in `VERIFY.md`. A fabricated number is
+the only unrecoverable error on this site.
+
+### R6 — The film is the site, so the film is accessible.
+
+`aria-hidden` is banned on content layers. Solve the live-region churn with `aria-live="off"`
+plus one `aria-live="polite"` announcer that fires **once per shot entry**, not per frame.
+`#index` stays as the crawlable spine but is no longer the only accessible surface. Every
+interactive target is a real `<button>`/`<a>`, tab-reachable, with visible `:focus-visible`.
+
+### R7 — Performance is a design constraint.
+
+Ship an in-page FPS profiler that buckets frame rate by scroll depth and labels the shot,
+*before* optimising anything. Target locked 60 on a mid-range Android. Never re-render on
+scroll — progress lives in a ref read inside the loop. Audit MSAA anywhere a composer is
+involved. Optimise by removal.
+
+### Unchanged from the first bible
+
+8. **Post-processing is not optional.** Bloom, grain, vignette, chromatic aberration, AgX
+   tonemap and a **per-shot colour grade** are part of the frame, not a filter on top.
+9. **One key light.** Each world is lit by a single dominant source. Flat ambient lighting is
+   what made the old build look like a toy. (R3's light-lead moves that key; it does not add
+   a second one.)
+10. **Long lenses.** FOV 28–35, not 60. Compression is what makes CG read as photographed.
+11. **Nothing is a radial-gradient sprite.** Glows come from real geometry + bloom.
+12. **Motion never fully stops.** Even at rest: drift, precession, particulate. R2 parks the
+    camera; it does not kill the frame.
 
 ---
 

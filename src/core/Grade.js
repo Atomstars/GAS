@@ -34,6 +34,14 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 }
 `;
 
+/* A grade is now the whole look of a shot, not just its colour.
+
+   Vignette, grain and the bloom threshold were fixed globally, tuned once against a
+   film that was black in every frame. On a high-key set those same three numbers are
+   what destroy it: a 0.78 vignette eats the corners of a white frame, and a bloom
+   threshold of 0.22 means a near-white set is ENTIRELY above the threshold, so the
+   HUGE kernel blurs the whole frame back over itself as milk. SHOTLIST §4 R4 asks
+   each world to declare a key; this is what lets it. */
 export const NEUTRAL_GRADE = {
   lift: [0, 0, 0],
   gamma: [1, 1, 1],
@@ -41,6 +49,12 @@ export const NEUTRAL_GRADE = {
   sat: 1,
   contrast: 1,
   bloom: 0.8,
+  // R4 ceilings: vignette <= 0.35, grain <= 0.045 on any shot that ships
+  vignette: 0.78,
+  vignetteOffset: 0.22,
+  grain: 0.28,
+  // luminance above which a pixel blooms. Low for a dark set, high for a bright one.
+  bloomThreshold: 0.22,
 };
 
 export class GradeEffect extends Effect {

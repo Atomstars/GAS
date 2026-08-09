@@ -3,121 +3,123 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GAS — Akash · AI agents, full-stack systems, automation</title>
-<meta name="description" content="Akash builds AI agents, full-stack platforms and the automation between them. Six projects — an autonomous job agent, an aerospace platform, a POS wired into n8n, an ML price model, a companion app and a GMAT verbal engine." />
-<meta name="theme-color" content="#000000" />
+<title>Akash Govada — AI agents, retrieval systems, full-stack platforms</title>
+<meta name="description" content="I build AI agent pipelines that reach production, retrieval systems with regression suites, and platforms designed end to end. Three builds documented in full: an agentic defect pipeline, a GMAT retrieval engine, and an aerospace operations surface." />
+<meta name="theme-color" content="#08090b" />
 <meta name="color-scheme" content="dark" />
 
-<!-- This site exists to be SENT to people. Without these a shared link renders as
-     a bare URL, which for a portfolio is the whole first impression lost. -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="GAS — Akash" />
-<meta property="og:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
+<meta property="og:title" content="Akash Govada — AI agents, retrieval systems, full-stack platforms" />
+<meta property="og:description" content="Three builds documented in full: problem, constraint, architecture, outcome — and the trade-off each one cost." />
 <meta property="og:image" content="/og.png" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="GAS — Akash" />
-<meta name="twitter:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
+<meta name="twitter:title" content="Akash Govada" />
+<meta name="twitter:description" content="Three builds documented in full: problem, constraint, architecture, outcome." />
 <meta name="twitter:image" content="/og.png" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<!-- Syncopate carries the GAS wordmark and nothing else. It is a wide, geometric
+     display face — wrong for reading, exactly right for a three-letter mark that has
+     to hold its shape while a volumetric field condenses into it. -->
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-<canvas id="gl"></canvas>
-<div id="scroll-space" aria-hidden="true"></div>
+<!-- The cursor wipe. A veil that rebuilds itself every frame and is erased where the
+     pointer passes, so moving the mouse genuinely clears the surface rather than
+     lighting a spot on top of it. Purely decorative, so it is hidden from AT and is
+     removed entirely under prefers-reduced-motion. -->
+<!-- The atmosphere: a live WebGL field behind the entire page. Scroll drives depth
+     through it, the pointer lights it, and it takes the colour of whichever project is
+     on screen. One fullscreen pass at half resolution — see src/bg.js. -->
+<canvas id="atmos" aria-hidden="true"></canvas>
 
-<!-- The text layer of record.
+<!-- The cursor wipe. A haze that lifts the blacks and is erased where the pointer
+     passes, so moving the mouse genuinely cleans the surface. -->
+<canvas id="veil" aria-hidden="true"></canvas>
 
-     Everything a visitor SEES is either WebGL or a caption that shows one project
-     at a time, so before this the payload of the site — the six projects, 75% of
-     its scroll — had no text representation at all: nothing for a crawler, nothing
-     for a screen reader, nothing to quote. The visible film is the experience; this
-     is the same content in a form that survives without it. Filled from
-     data/projects.js so it cannot drift out of sync with the film. -->
-<main id="index" class="sr-only">
-  <h1>Akash — AI agents, full-stack systems and automation</h1>
-  <p>
-    I build AI agents, full-stack platforms and the automation between them.
-    The site itself is a scroll-piloted film; the work is listed below.
-  </p>
-  <h2>Selected work</h2>
-  <ol id="index-work"></ol>
-  <h2>Contact</h2>
-  <p>
-    Email <a href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>,
-    or see the source on <a href="https://github.com/Atomstars" rel="noopener">GitHub</a>.
-  </p>
+<a class="skip" href="#work">Skip to the work</a>
+
+<header id="top">
+  <a class="wordmark" href="#top" aria-label="Akash Govada, home">
+    <span class="mark">AKASH</span>
+    <span class="rule" aria-hidden="true"></span>
+    <span class="who">GOVADA</span>
+  </a>
+  <nav aria-label="Sections">
+    <a href="#work">Work</a>
+    <a href="#ledger">Ledger</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ── ACT 0 · GAS ──────────────────────────────────────────────────────
+       The wordmark is not drawn — a volumetric field condenses into it as you begin
+       to scroll, and disperses again as you leave. The <h1> underneath is the real
+       one: the canvas is decoration, so the mark still exists for a screen reader,
+       a crawler and anyone who lands here without WebGL. -->
+  <section class="title" id="gas" aria-labelledby="gas-h">
+    <canvas id="gasfield" aria-hidden="true"></canvas>
+    <div class="title-copy">
+      <h1 id="gas-h" class="wordmark-xl">GAS</h1>
+      <p class="title-sub">Akash Govada — AI agents, retrieval systems, full-stack platforms</p>
+    </div>
+    <div class="title-cue" aria-hidden="true"><span>SCROLL</span><i></i></div>
+  </section>
+
+  <!-- ── OPENING ─────────────────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-h">
+    <p class="eyebrow">AKASH — SANSKRIT FOR <em>THE SKY</em></p>
+    <!-- h2, not h1: the wordmark above is the page's heading now, and two h1s would
+         leave a screen reader with no single answer to "what is this page". -->
+    <h2 id="hero-h">
+      I build <em>AI agent pipelines</em> that reach production,
+      retrieval systems with <em>regression suites</em>,
+      and platforms designed <em>end to end</em>.
+    </h2>
+    <div class="hero-meta">
+      <p>Three builds below, documented in full — problem, constraint, architecture, outcome, and the trade-off each one cost.</p>
+      <a class="cta" href="#work">See the work <span aria-hidden="true">↓</span></a>
+    </div>
+  </section>
+
+  <!-- ── WHAT I DO ───────────────────────────────────────────────────────── -->
+  <section class="thesis" id="approach" aria-labelledby="thesis-h">
+    <h2 id="thesis-h" class="section-h"><span class="idx">00</span> Approach</h2>
+    <ol class="thesis-list" id="thesis-list"></ol>
+  </section>
+
+  <!-- ── THE WORK ────────────────────────────────────────────────────────────
+       Each project is a sticky spec column beside a stack of chapter frames.
+       Built from data/work.js so the page and the content cannot drift apart. -->
+  <section id="work" aria-labelledby="work-h">
+    <h2 id="work-h" class="section-h"><span class="idx">01</span> Selected work</h2>
+    <div id="work-list"></div>
+  </section>
+
+  <!-- ── LEDGER ──────────────────────────────────────────────────────────── -->
+  <section id="ledger" aria-labelledby="ledger-h">
+    <h2 id="ledger-h" class="section-h"><span class="idx">02</span> Also built</h2>
+    <p class="ledger-note">Smaller or older. Listed rather than showcased, because a portfolio is judged on its weakest featured item.</p>
+    <ul class="ledger" id="ledger-list"></ul>
+  </section>
+
+  <!-- ── CONTACT ─────────────────────────────────────────────────────────── -->
+  <section id="contact" aria-labelledby="contact-h">
+    <h2 id="contact-h" class="section-h"><span class="idx">03</span> Contact</h2>
+    <p class="contact-line">Tell me what you're building.<br />I'll tell you how I'd build it.</p>
+    <div class="contact-links" id="contact-links"></div>
+  </section>
+
 </main>
 
-<div class="film">
-
-  <div class="bar bar-t" aria-hidden="true"></div>
-  <div class="bar bar-b" aria-hidden="true"></div>
-
-  <header id="hud">
-    <div class="hud-l">
-      <span class="mark">GAS</span>
-      <span class="rule" aria-hidden="true"></span>
-      <span class="who">AKASH</span>
-    </div>
-    <div class="hud-r"><span id="act">GAS</span></div>
-  </header>
-
-  <!-- ACT 0 · the wordmark itself is volumetric gas, rendered in WebGL -->
-  <div id="title-copy" aria-hidden="true">
-    <p class="kicker">AKASH — SANSKRIT FOR <em>THE SKY</em></p>
-    <!-- was "I build cinematic products", which named a texture rather than a
-         capability; a visitor deciding whether to get in touch needs the second
-         line's specifics in the first line's position -->
-    <p class="lede">I build AI agents, full-stack platforms<br />and the automation between them.</p>
-    <div class="cue"><span>SCROLL</span><i aria-hidden="true"></i></div>
-  </div>
-
-  <!-- ACT II · project caption.
-       aria-hidden, and deliberately: as a polite live region it re-announced the
-       whole card every time the scroll crossed into another world, which on a
-       1190vh page is relentless. #index above carries the same six projects as a
-       list the reader can move through at their own pace. -->
-  <section id="caption" aria-hidden="true">
-    <p class="cat"></p>
-    <h2 class="name"></h2>
-    <p class="blurb"></p>
-    <ul class="stack"></ul>
-    <a class="open" target="_blank" rel="noopener">OPEN REPOSITORY <span aria-hidden="true">↗</span></a>
-  </section>
-
-  <!-- ACT I½ · the gate. Anchors are positioned from the 3D portals each frame,
-       so the click target sits on the doorway it belongs to. Scrolling past is
-       still the default path — these are a shortcut, not a required choice. -->
-  <div id="gate-targets" aria-label="Jump to a category"></div>
-
-  <!-- passive progress -->
-  <nav id="rail" aria-hidden="true">
-    <div id="rail-label"></div>
-    <div id="rail-line">
-      <div id="rail-ticks"></div>
-      <div id="rail-fill"></div>
-    </div>
-  </nav>
-
-  <!-- ACT III -->
-  <section id="contact-copy" aria-hidden="true">
-    <p class="kicker">END OF ROUTE</p>
-    <h2 class="sign">Got an idea?<br />Let's give it <em>GAS.</em></h2>
-    <!-- The hook was doing all the work alone. This is the one place a visitor
-         decides whether to write, so it should say what to write about. -->
-    <p class="ask">Tell me what you're building. I'll tell you how I'd build it.</p>
-    <div class="links">
-      <a class="cta" href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>
-      <a class="cta ghost" href="https://github.com/Atomstars" target="_blank" rel="noopener">github.com/Atomstars</a>
-    </div>
-    <p class="foot">scroll back to fly the route again</p>
-  </section>
-
-</div>
-
-<div id="cursor" aria-hidden="true"></div>
+<footer>
+  <span>Akash Govada</span>
+  <span>Built with Claude Code</span>
+</footer>
 
 <script type="module" src="/src/main.js"></script>
 </body>
