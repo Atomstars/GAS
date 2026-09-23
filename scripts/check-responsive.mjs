@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const p=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];p.on('pageerror',e=>errors.push(e.message));
+await p.goto('http://127.0.0.1:5173',{waitUntil:'networkidle'});await p.waitForFunction(()=>document.querySelector('#loader').hidden);
+await p.evaluate(()=>{const work=document.querySelector('.work');scrollTo(0,work.getBoundingClientRect().top+scrollY+work.offsetHeight-innerHeight);});
+await p.waitForTimeout(1500);assert.equal(await p.locator('#work-current').innerText(),'11 / 11');
+await p.mouse.wheel(0,900);await p.waitForTimeout(1200);assert(await p.locator('#inside').evaluate(el=>el.getBoundingClientRect().top<innerHeight),'Horizontal passage releases into vertical story');
+await p.locator('#case-select').selectOption('moneyfest');await p.waitForTimeout(300);await p.locator('#case-select').selectOption('buddy');await p.waitForTimeout(300);assert.equal(await p.locator('.case-step').count(),3);
+await p.setViewportSize({width:390,height:844});await p.waitForTimeout(700);assert.equal(await p.locator('body').evaluate(el=>el.classList.contains('horizontal-cinema')),false);
+await p.locator('nav a[href="#work"]').click();await p.waitForTimeout(1300);assert.equal(await p.locator('.work-window').evaluate(el=>getComputedStyle(el).overflowX),'auto');
+await p.emulateMedia({reducedMotion:'reduce'});await p.waitForTimeout(600);assert.equal(await p.locator('.pin-spacer').count(),0);
+await p.locator('nav a[href="#contact"]').click();await p.waitForTimeout(300);assert(await p.locator('#contact').evaluate(el=>el.getBoundingClientRect().top<innerHeight));
+await p.screenshot({path:'.frames/journey-resized-contact.png'});
+await browser.close();assert.deepEqual(errors,[]);console.log('Gallery exit, repeated case changes, live desktop-to-mobile resize, and reduced-motion change passed.');

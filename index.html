@@ -1,124 +1,37 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>GAS — Akash · AI agents, full-stack systems, automation</title>
-<meta name="description" content="Akash builds AI agents, full-stack platforms and the automation between them. Six projects — an autonomous job agent, an aerospace platform, a POS wired into n8n, an ML price model, a companion app and a GMAT verbal engine." />
-<meta name="theme-color" content="#000000" />
-<meta name="color-scheme" content="dark" />
-
-<!-- This site exists to be SENT to people. Without these a shared link renders as
-     a bare URL, which for a portfolio is the whole first impression lost. -->
-<meta property="og:type" content="website" />
-<meta property="og:title" content="GAS — Akash" />
-<meta property="og:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
-<meta property="og:image" content="/og.png" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="GAS — Akash" />
-<meta name="twitter:description" content="AI agents, full-stack platforms and the automation between them. Six projects, one continuous flight." />
-<meta name="twitter:image" content="/og.png" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GAS — Akash · Ideas taking form</title>
+  <meta name="description" content="A journey through the work of Akash. Full-stack products, thoughtful interfaces, financial tools, and the systems beneath them.">
+  <meta name="theme-color" content="#10100e"><meta property="og:title" content="GAS — Ideas taking form"><meta property="og:description" content="A continuous exploration of Akash’s projects, craft, and engineering."><meta property="og:image" content="/og.png"><meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" as="image" href="/work/aperture.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<canvas id="gl"></canvas>
-<div id="scroll-space" aria-hidden="true"></div>
-
-<!-- The text layer of record.
-
-     Everything a visitor SEES is either WebGL or a caption that shows one project
-     at a time, so before this the payload of the site — the six projects, 75% of
-     its scroll — had no text representation at all: nothing for a crawler, nothing
-     for a screen reader, nothing to quote. The visible film is the experience; this
-     is the same content in a form that survives without it. Filled from
-     data/projects.js so it cannot drift out of sync with the film. -->
-<main id="index" class="sr-only">
-  <h1>Akash — AI agents, full-stack systems and automation</h1>
-  <p>
-    I build AI agents, full-stack platforms and the automation between them.
-    The site itself is a scroll-piloted film; the work is listed below.
-  </p>
-  <h2>Selected work</h2>
-  <ol id="index-work"></ol>
-  <h2>Contact</h2>
-  <p>
-    Email <a href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>,
-    or see the source on <a href="https://github.com/Atomstars" rel="noopener">GitHub</a>.
-  </p>
-</main>
-
-<div class="film">
-
-  <div class="bar bar-t" aria-hidden="true"></div>
-  <div class="bar bar-b" aria-hidden="true"></div>
-
-  <header id="hud">
-    <div class="hud-l">
-      <span class="mark">GAS</span>
-      <span class="rule" aria-hidden="true"></span>
-      <span class="who">AKASH</span>
-    </div>
-    <div class="hud-r"><span id="act">GAS</span></div>
-  </header>
-
-  <!-- ACT 0 · the wordmark itself is volumetric gas, rendered in WebGL -->
-  <div id="title-copy" aria-hidden="true">
-    <p class="kicker">AKASH — SANSKRIT FOR <em>THE SKY</em></p>
-    <!-- was "I build cinematic products", which named a texture rather than a
-         capability; a visitor deciding whether to get in touch needs the second
-         line's specifics in the first line's position -->
-    <p class="lede">I build AI agents, full-stack platforms<br />and the automation between them.</p>
-    <div class="cue"><span>SCROLL</span><i aria-hidden="true"></i></div>
-  </div>
-
-  <!-- ACT II · project caption.
-       aria-hidden, and deliberately: as a polite live region it re-announced the
-       whole card every time the scroll crossed into another world, which on a
-       1190vh page is relentless. #index above carries the same six projects as a
-       list the reader can move through at their own pace. -->
-  <section id="caption" aria-hidden="true">
-    <p class="cat"></p>
-    <h2 class="name"></h2>
-    <p class="blurb"></p>
-    <ul class="stack"></ul>
-    <a class="open" target="_blank" rel="noopener">OPEN REPOSITORY <span aria-hidden="true">↗</span></a>
-  </section>
-
-  <!-- ACT I½ · the gate. Anchors are positioned from the 3D portals each frame,
-       so the click target sits on the doorway it belongs to. Scrolling past is
-       still the default path — these are a shortcut, not a required choice. -->
-  <div id="gate-targets" aria-label="Jump to a category"></div>
-
-  <!-- passive progress -->
-  <nav id="rail" aria-hidden="true">
-    <div id="rail-label"></div>
-    <div id="rail-line">
-      <div id="rail-ticks"></div>
-      <div id="rail-fill"></div>
-    </div>
-  </nav>
-
-  <!-- ACT III -->
-  <section id="contact-copy" aria-hidden="true">
-    <p class="kicker">END OF ROUTE</p>
-    <h2 class="sign">Got an idea?<br />Let's give it <em>GAS.</em></h2>
-    <!-- The hook was doing all the work alone. This is the one place a visitor
-         decides whether to write, so it should say what to write about. -->
-    <p class="ask">Tell me what you're building. I'll tell you how I'd build it.</p>
-    <div class="links">
-      <a class="cta" href="mailto:govada.akash@gmail.com">govada.akash@gmail.com</a>
-      <a class="cta ghost" href="https://github.com/Atomstars" target="_blank" rel="noopener">github.com/Atomstars</a>
-    </div>
-    <p class="foot">scroll back to fly the route again</p>
-  </section>
-
-</div>
-
-<div id="cursor" aria-hidden="true"></div>
-
-<script type="module" src="/src/main.js"></script>
-</body>
-</html>
+  <a class="skip-link" href="#work">Skip to the work</a>
+  <header class="header"><a href="#home" class="brand" aria-label="GAS home">GAS<span>®</span></a><span class="header-note">THE PERSONAL SPACE<br>OF AKASH</span><nav aria-label="Main navigation"><a href="#work">Work</a><button id="open-index" hidden>Index <span>14</span></button><a href="#about">About</a><a href="#contact" class="contact-link">Let’s talk ↗</a></nav></header>
+  <main>
+    <section class="opening" id="home" aria-labelledby="hero-title">
+      <div class="opening-frame">
+        <div class="hero-image" aria-hidden="true"><img id="hero-image" src="/work/aperture.png" alt="" width="1672" height="941" fetchpriority="high"><div class="light-haze"></div></div>
+        <div class="hero-shade" aria-hidden="true"></div><canvas id="dust" aria-hidden="true"></canvas>
+        <div class="opening-meta"><span><i></i> AKASH / FULL-STACK DEVELOPER</span><span>AN EXPLORATION OF WHAT’S POSSIBLE</span></div>
+        <div class="hero-copy"><p class="eyebrow">EVERYTHING STARTS WITH A SPARK.</p><h1 id="hero-title">Ideas, engineered<br>into <em>reality.</em></h1><div class="hero-description"><span class="tiny-cross">✳</span><p>I build web products, intelligent tools,<br>and the systems that connect them.</p></div></div>
+        <div class="hero-bottom"><a href="#work" class="explore-link"><span class="circle">↓</span><span>STEP INTO THE WORK<small>SCROLL TO BEGIN THE JOURNEY</small></span></a><span class="hero-signature">IMAGINATION, WITH INTENTION.<br>GAS — AKASH</span></div>
+        <div class="opening-story" aria-hidden="true"><span class="eyebrow">01 / A DIFFERENT PERSPECTIVE</span><h2>First, a thought.<br>Then, <em>a way through.</em></h2><p>The interesting part lives between an idea<br>and the thing you can actually use.</p><span class="story-line"></span></div>
+        <div class="opening-label" aria-hidden="true"><span>THE ORIGIN</span><i></i><span>01 — 05</span></div>
+      </div>
+    </section>
+    <section class="threshold" aria-labelledby="threshold-title"><div class="threshold-copy"><span class="eyebrow">FROM POSSIBILITY TO PRACTICE</span><h2 id="threshold-title">Different ideas.<br><em>One restless mind.</em></h2></div><div class="floating-labels" aria-hidden="true"><span>INTERFACES</span><span>AI & AUTOMATION</span><span>FINANCIAL TOOLS</span><span>FULL-STACK SYSTEMS</span></div><div class="threshold-footer"><p>Projects that explore how things look,<br>how they work, and how they connect.</p><span>THE COLLECTION CONTINUES →</span></div></section>
+    <section class="work" id="work" aria-labelledby="work-title"><div class="work-frame"><div class="work-heading"><div><span class="eyebrow">02 / SELECTED WORLDS</span><h2 id="work-title">Follow your <em>curiosity.</em></h2></div><div class="work-direction"><span>SCROLL DOWN. THE STORY MOVES SIDEWAYS.</span><div><button id="work-prev" aria-label="Previous project">←</button><button id="work-next" aria-label="Next project">→</button></div></div></div><div class="work-window"><div class="work-track" id="project-track"></div></div><div class="work-footer"><span id="work-current">01 / 11</span><div class="work-progress"><i></i></div><a href="#archive">THE COMPLETE COLLECTION ↗</a></div></div></section>
+    <section class="inside" id="inside" aria-labelledby="inside-title"><div class="inside-sticky"><span class="eyebrow">03 / BENEATH THE SURFACE</span><h2 id="inside-title">Good interfaces.<br><em>Deeper thinking.</em></h2><p>A closer look at the decisions<br>behind the experience.</p><label for="case-select">EXPLORE A DIFFERENT BUILD</label><select id="case-select"></select><a id="case-source" class="text-link" href="https://github.com/Atomstars/Davina_AeroSpace" target="_blank" rel="noopener noreferrer">Read the source ↗</a></div><div class="case-story" id="case-story"></div></section>
+    <section class="archive" id="archive" aria-labelledby="archive-title"><div class="archive-heading"><div><span class="eyebrow">THE WHOLE EXPLORATION</span><h2 id="archive-title">Every thread.<br><em>All connected.</em></h2></div><p>Products, experiments, and foundations.<br>All 14 public repositories, in one place.</p></div><div id="archive-list"></div></section>
+    <section class="about" id="about" aria-labelledby="about-title"><div class="about-top"><span class="eyebrow">04 / THE PERSON BEHIND THE WORK</span><span>AKASH / GAS</span></div><h2 id="about-title"><span>Curious by nature.</span><span><em>Builder by choice.</em></span></h2><div class="about-bottom"><span class="about-star">✳</span><p>I like the space where design meets engineering. From the first interaction to the backend underneath, I build to understand—and to make something useful.</p><div><span>INTERFACES / React · TypeScript</span><span>SYSTEMS / Java · Spring Boot</span><span>CONNECTIONS / Python · Automation</span></div></div></section>
+    <section class="contact" id="contact" aria-labelledby="contact-title"><div class="contact-image" aria-hidden="true"></div><div class="contact-content"><span class="eyebrow">05 / THE NEXT CHAPTER</span><h2 id="contact-title">Leave with an idea.<br><em>Let’s make it real.</em></h2><a class="email" href="mailto:govada.akash@gmail.com">govada.akash@gmail.com <span>↗</span></a><p>A product to build. A problem to solve.<br>Or a team to build with.</p></div><footer><a href="#home" class="brand">GAS<span>®</span></a><span>THOUGHTFULLY BUILT BY AKASH</span><a href="https://github.com/Atomstars" target="_blank" rel="noopener noreferrer">GitHub ↗</a><a href="#home">Back to the beginning ↑</a></footer></section>
+  </main>
+  <dialog id="project-index" aria-labelledby="index-title"><div class="dialog-top"><span class="eyebrow">THE COMPLETE COLLECTION</span><button id="close-index" aria-label="Close project index">✕</button></div><h2 id="index-title">Choose a <em>direction.</em></h2><label class="search-label"><span class="sr-only">Find a project</span><input type="search" id="project-search" placeholder="Find a project, technology, or idea…"></label><div id="index-list"></div></dialog>
+  <div id="loader" hidden><span class="eyebrow">GAS / IDEAS TAKING FORM</span><strong>Opening<br><em>a possibility.</em></strong><span id="load-label">PREPARING THE FIRST FRAME</span><button id="skip-loading">Enter now ↗</button></div>
+  <noscript><section class="no-script"><h2>Project repositories</h2><p>The animated journey uses JavaScript. Explore all the work directly:</p><a href="https://github.com/Atomstars?tab=repositories">All 14 repositories on GitHub ↗</a></section></noscript>
+  <script type="module" src="/src/main.js"></script>
+</body></html>
