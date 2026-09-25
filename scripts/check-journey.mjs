@@ -9,7 +9,10 @@ for(const [name,width,height,reducedMotion] of [['journey-desktop',1440,1000,'no
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(`${name}: ${e.message}`));p.on('console',m=>{if(m.type()==='error')errors.push(`${name}: ${m.text()}`);});
   await p.goto('http://127.0.0.1:5173',{waitUntil:'networkidle'});
   await p.waitForFunction(()=>document.querySelector('#loader').hidden);await p.waitForTimeout(1400);
-  assert(await p.locator('#hero-image').evaluate(img=>img.complete&&img.naturalWidth>0));
+  assert(await p.locator('#galaxy canvas').count() || await p.locator('.galaxy-fallback').count());
+  assert.equal(await p.locator('[data-matter]').count(),3);
+  assert.equal(await p.locator('[data-orbit]').count(),11);
+  assert.equal(await p.locator('.world-art').count(),11);
   assert.equal(await p.locator('.project-card').count(),11);assert.equal(await p.locator('.archive-row').count(),14);
   assert(await p.evaluate(()=>getComputedStyle(document.body).overflowY!=='hidden'));
   await p.screenshot({path:`.frames/${name}-hero.png`});
@@ -25,7 +28,7 @@ for(const [name,width,height,reducedMotion] of [['journey-desktop',1440,1000,'no
   assert((await p.locator('#work-current').innerText()).startsWith('02'));
   if(width>800&&reducedMotion==='no-preference')assert(await p.evaluate(()=>scrollY)>before,'Vertical input travels horizontally');
   await p.screenshot({path:`.frames/${name}-work-next.png`});
-  await p.locator('#project-moneyfest button').click();await p.waitForTimeout(1800);
+  await p.locator('#project-moneyfest .world-art').click();await p.waitForTimeout(1800);
   assert.equal(await p.locator('#case-select').inputValue(),'moneyfest');
   assert((await p.locator('#case-story').innerText()).includes('deterministic gate'));
   await p.screenshot({path:`.frames/${name}-inside.png`});

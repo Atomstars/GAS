@@ -1,47 +1,58 @@
-# GAS — Ideas taking form
+# GAS — Akash / Atomstars
 
-Akash’s portfolio as a continuous scroll journey with different motion in each chapter. Native document scrolling stays intact: no wheel interception, full-page slideshow, or forced autoplay.
+A portfolio built around verified implementation evidence: AI reasoning, full-stack applications, automation, and creative web experiences.
 
 ## Run
 
 ```sh
 npm ci
 npm run dev
+npm run build
+npm run preview
 ```
 
-Open http://localhost:5173. Build with `npm run build`; inspect production with `npm run preview`.
+The local site runs at http://localhost:5173. No credentials or backend are required. External previews may require their own services.
 
-## The journey
+## Current experience
 
-1. **Opening:** a photographic architectural aperture. Scroll pushes into the light while the first title rises away and a second frame resolves over the same scene. Pointer movement shifts the light haze; a press briefly brightens it.
-2. **Threshold:** independently floating discipline labels bridge the opening and the work.
-3. **Work:** a pinned horizontal passage through eleven substantive projects on desktop. Phones and reduced-motion users get a native swipeable gallery with previous/next controls.
-4. **Inside the build:** a vertical project story beside a sticky heading. Any project card or index entry can select the story; the selector can change it in place.
-5. **Collection, person, closing:** all fourteen public repositories, a large typographic reveal, and a slower architectural contact frame.
+- Charcoal, warm ivory, and orange art direction with responsive typography.
+- Custom GAS SVG wordmark and favicon; large GAS hero; exploded Three.js system architecture with pointer response, scroll-driven perspective, and explicit expand/reassemble control.
+- Four-layer technology explorer: selectable 3D planes, animated technology tiles, project counts, and clickable implementation evidence.
+- Six selected projects with a wide lead frame, layered interface/system studies, distinct environments, scroll-responsive perspective, touch feedback, and category filters.
+- Interactive 3D system routes for local GMAT tutoring, Buddy reflections, and MoneyFest attribution. Play/pause, manual stages, explanations, and source links connect each animation to implementation. A separate SDLC strip explains the development process. MoneyFest’s outcome examples remain in an optional, plain-language deeper dive. All routes are illustrative, not live API or model execution.
+- Searchable archive of all 14 public repositories, including source-only projects and empty archives.
+- Case-study dialogs with implementation details, technology lists, repository links, and listed previews.
+- Cinematic closing frames, spatial GAS typography, and a layered contact portal.
+- Native scrolling, keyboard tabs/dialogs, touch feedback, motion controls, reduced-motion support, and offscreen/hidden-tab 3D suspension.
 
-## Implementation
+Project artwork is explicitly labelled as interface/system studies. Existing actual deployment captures appear in relevant project details and are dated September 23, 2026. Contact opens the existing mailto address; no form submission service is implied.
 
-- `index.html`: semantic page chapters and index dialog.
-- `src/main.js`: GSAP/ScrollTrigger choreography, project rendering, case selection, search, loading, and ambient particles.
-- `src/style.css`: layouts, project artwork, responsive gallery, static/reduced-motion presentation.
-- `src/data/catalog.js`: repository audit and project stories.
-- `public/work/aperture.png`: generated cinematic photographic artwork, created with the built-in image generation tool. Exact prompt and provenance are in `public/work/aperture-prompt.txt`.
-- `public/work/daymark.jpg` and `gmat.jpg`: public deployment screenshots; GMAT shows its entry screen.
+## Active files
 
-The previous Three.js shot systems in `src/core`, `src/shots`, `src/ui`, and `src/visual` are retained as earlier explorations and are not imported by the current entry point. `SHOTLIST.md` and `HANDOFF.md` describe those earlier versions.
+- `index.html`: semantic page, navigation, sections, dialogs, and metadata.
+- `src/studio.js`: technology explorer, filtering, case studies, archive, typing, and pipeline interactions.
+- `src/studio.css`, `src/studio-art.css`, and `src/cinema.css`: responsive presentation and procedural project illustrations.
+- `src/visual/StudioSculpture.js`: lazy-loaded hero and request-route 3D scenes with lifecycle and fallback handling.
+- `src/systemExplorer.js`: three source-based architecture routes, stage explanations, and playback.
+- `public/gas-wordmark.svg` and `public/favicon.svg`: custom vector brand assets.
+- `src/data/studioCatalog.js`: current source corrections, extending `src/data/catalog.js`.
+- `research/github-audit.json`: repository trees, commit identifiers, READMEs, manifests, and selected implementation snapshots.
+- `research/REVIEW.md`: scope, evidence, and important corrections.
 
-## Validation
+The earlier entry files, galaxy/matter work, shot systems, and tests are retained as previous explorations; they are not imported by the current page. Existing uncommitted entry files were backed up under the ignored `.frames/before-redesign/` before replacement. The first studio iteration was also saved in `.frames/before-cinema/`. `HANDOFF.md` and `SHOTLIST.md` refer to the earlier design.
 
-With the dev server running, `node scripts/check-journey.mjs` checks the opening, native scroll, desktop horizontal travel, mobile/reduced-motion gallery, project stories, repository index, contact, image loading, document overflow, and browser errors. Screenshots go to `.frames/`, which is ignored by Git. The script currently uses installed Windows Chrome.
+## Verify
 
-`node scripts/capture-projects.mjs` refreshes project screenshots without signing in or changing remote data.
+With the local server running:
 
-## Content provenance
+```sh
+node scripts/check-cinema.mjs
+```
 
-Public repository metadata, READMEs, and relevant source were reviewed on September 23, 2026. All fourteen public repositories are represented, including README-only and empty archives. The separate Stock Simulator has not been located and needs its GitHub repository name or URL.
+The current browser check uses installed Windows Chrome and Playwright. It covers project filters, technology evidence, keyboard tabs, dialogs, archive search, pipeline branches, responsive overflow at 320–1440px, reduced motion, touch interaction, and WebGL fallback. Screenshots are saved to the ignored `.frames/` directory. `npm run build` validates the production bundle.
 
-Daymark loaded during review. Café POS’s product service and GMAT Trainer’s guest question bank were unavailable; their status is stated in the project stories. Other preview links come from repository metadata and do not imply operational backend services. MoneyFest explains observed stock moves; Job-Agent creates search plans; Housing Predictor uses small illustrative learning datasets.
+## Content scope
 
-Project artwork is labelled as a design/system study or an actual capture. The aperture is generated artwork, not a photograph of a claimed personal project. The legacy Earth texture is from [Solar System Scope](https://www.solarsystemscope.com/textures/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Public GitHub metadata, trees, READMEs, dependency manifests, and selected source were reviewed on September 26, 2026. This is a source review, not a production certification or exhaustive audit of every line. The portfolio makes no unverified claims about employment, business impact, user counts, or autonomous operation.
 
-There is no contact backend, analytics, automatic GitHub sync, or credential requirement. Contact opens an email link.
+Notable corrections: Tutor-Agent currently persists to MongoDB and returns a template tutor response; MoneyFest has an implemented gated attribution/verifier pipeline; Buddy has Groq reflections with deterministic fallbacks. Source links let visitors inspect the implementation directly.

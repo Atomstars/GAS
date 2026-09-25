@@ -1,0 +1,20 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:5173',{waitUntil:'networkidle'});await page.screenshot({path:'.frames/studio-desktop.png'});
+assert.equal(await page.locator('.project-card').count(),6);
+await page.locator('#stack').scrollIntoViewIfNeeded();await page.waitForTimeout(900);await page.screenshot({path:'.frames/studio-stack.png'});
+await page.locator('[data-layer="1"]').click();await page.locator('[data-tech="2"]').click();assert.match(await page.locator('#tech-evidence').innerText(),/seven/);
+await page.locator('[data-layer="1"]').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('[data-layer="2"]').getAttribute('aria-selected'),'true');
+await page.locator('[data-filter="ai"]').click();assert.equal(await page.locator('.project-card').count(),3);await page.locator('[data-filter="creative"]').click();assert.equal(await page.locator('.project-card').count(),1);await page.locator('[data-filter="all"]').click();
+await page.locator('#work').scrollIntoViewIfNeeded();await page.waitForTimeout(700);await page.screenshot({path:'.frames/studio-work.png'});
+await page.locator('.project-art[data-project="moneyfest"]').click();assert.equal(await page.locator('#project-dialog').evaluate(d=>d.open),true);assert.match(await page.locator('#project-detail').innerText(),/deterministic checks/);await page.keyboard.press('Escape');assert.equal(await page.locator('#project-dialog').evaluate(d=>d.open),false);
+await page.locator('#open-archive').click();assert.equal(await page.locator('.archive-row').count(),14);await page.locator('#archive-search').fill('MongoDB');assert.equal(await page.locator('.archive-row').count(),1);await page.locator('.archive-row button').click();assert.match(await page.locator('#project-detail').innerText(),/template-based/);await page.keyboard.press('Escape');
+await page.locator('.reasoning-detail summary').click();await page.locator('[data-scenario="noise"]').click();assert.match(await page.locator('#terminal').innerText(),/NOISE/);assert.equal(await page.locator('.pipeline-step.skipped').count(),3);await page.locator('[data-scenario="none"]').click();assert.match(await page.locator('#terminal').innerText(),/NO_DRIVER/);
+await page.locator('#motion-toggle').click();assert.equal(await page.locator('body').evaluate(e=>e.classList.contains('motion-off')),true);
+for(const width of [1440,1024,768,390,320]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`No horizontal overflow at ${width}`);}
+await page.emulateMedia({reducedMotion:'reduce'});await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:'.frames/studio-mobile.png',fullPage:true});
+await page.locator('#open-archive').click();await page.locator('#archive-search').fill('xyz-nothing');assert.match(await page.locator('#archive-results').innerText(),/No projects/);await page.keyboard.press('Escape');
+const noGl=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce',hasTouch:true,isMobile:true});await noGl.addInitScript(()=>{HTMLCanvasElement.prototype.getContext=function(){return null;};});await noGl.goto('http://127.0.0.1:5173');assert(await noGl.locator('.scene-fallback').isVisible());await noGl.locator('[data-layer="3"]').tap();assert.equal(await noGl.locator('[data-layer="3"]').getAttribute('aria-selected'),'true');
+assert.deepEqual(errors,[]);await browser.close();console.log('PASS: desktop/mobile layouts, filters, technology evidence, keyboard tabs, all 14 repositories, project dialogs, pipeline scenarios, motion toggle, reduced motion, touch, WebGL fallback, no browser errors.');
