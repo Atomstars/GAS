@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const b=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const p=await b.newPage({viewport:{width:1440,height:1080}});p.on('pageerror',e=>console.log('ERROR',e.message));
+await p.goto('http://127.0.0.1:5173',{waitUntil:'networkidle'});await p.waitForTimeout(2500);
+console.log('render',await p.locator('#engine-stage').getAttribute('data-renderer'));
+await p.screenshot({path:'.frames/atelier-desktop.png'});
+await p.locator('#logo-options-trigger').click();await p.screenshot({path:'.frames/atelier-logos.png'});await p.keyboard.press('Escape');
+await p.locator('#theme-command button').click();await p.waitForTimeout(1400);await p.screenshot({path:'.frames/atelier-light.png'});
+await p.setViewportSize({width:390,height:1000});await p.locator('#theme-command button').click();await p.waitForTimeout(1400);await p.screenshot({path:'.frames/atelier-mobile.png'});
+await b.close();

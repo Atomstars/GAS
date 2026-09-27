@@ -1,6 +1,6 @@
 # GAS — Akash / Atomstars
 
-A portfolio built around verified implementation evidence: AI reasoning, full-stack applications, automation, and creative web experiences.
+A portfolio of real engineering projects, readable architecture, and an interactive idea-to-product opening.
 
 ## Run
 
@@ -11,48 +11,51 @@ npm run build
 npm run preview
 ```
 
-The local site runs at http://localhost:5173. No credentials or backend are required. External previews may require their own services.
+Open http://localhost:5173. No backend or credentials are required.
 
 ## Current experience
 
-- Charcoal, warm ivory, and orange art direction with responsive typography.
-- Custom GAS SVG wordmark and favicon; large GAS hero; exploded Three.js system architecture with pointer response, scroll-driven perspective, and explicit expand/reassemble control.
-- Four-layer technology explorer: selectable 3D planes, animated technology tiles, project counts, and clickable implementation evidence.
-- Six selected projects with a wide lead frame, layered interface/system studies, distinct environments, scroll-responsive perspective, touch feedback, and category filters.
-- Interactive 3D system routes for local GMAT tutoring, Buddy reflections, and MoneyFest attribution. Play/pause, manual stages, explanations, and source links connect each animation to implementation. A separate SDLC strip explains the development process. MoneyFest’s outcome examples remain in an optional, plain-language deeper dive. All routes are illustrative, not live API or model execution.
-- Searchable archive of all 14 public repositories, including source-only projects and empty archives.
-- Case-study dialogs with implementation details, technology lists, repository links, and listed previews.
-- Cinematic closing frames, spatial GAS typography, and a layered contact portal.
-- Native scrolling, keyboard tabs/dialogs, touch feedback, motion controls, reduced-motion support, and offscreen/hidden-tab 3D suspension.
-
-Project artwork is explicitly labelled as interface/system studies. Existing actual deployment captures appear in relevant project details and are dated September 23, 2026. Contact opens the existing mailto address; no form submission service is implied.
+- The opening is a reversible four-chapter film controlled by ordinary scrolling. Money, time, and wellbeing ideas converge into a product direction, connect to React / Node.js / Supabase / Groq, then resolve into an interactive Buddy product study. It uses DOM, SVG, and CSS perspective rather than a video file, so the final product remains usable.
+- Play/pause, replay, direct chapter buttons, and a native range control provide alternative ways to navigate the film. Pointer depth and touch feedback accompany the transitions. Reduced motion removes the long pinned scroll and exposes the same chapters directly. Animation work stops when settled, offscreen, or in a hidden tab.
+- Buddy's Overview, Planner, and Reflections views use labelled sample content. Planner checkboxes retain their state in memory while switching views. This is a portfolio interaction, not a connection to the Buddy backend or an AI provider.
+- Dark graphite is the default; light mode uses neutral ivory. The lighting command is a physical-looking local instrument with a recessed lamp, press feedback, a charging pulse, and an expanding theme reveal where View Transitions are supported. `lights.on()` and `lights.off()` are allowlisted commands, never evaluated JavaScript. Storage failure and reduced motion are supported.
+- Three logo directions—Cutline, Aperture, and Editorial—are available through **Logo concepts** in the header. Each has light/dark previews and its own favicon. Selecting one updates the header and footer and persists on the current device. Editorial is the initial direction.
+- Six selected projects, category filters, source-linked project dialogs, and a searchable archive covering all 14 public repositories remain available.
+- Three compact architecture walkthroughs explain local GMAT tutoring, Buddy contextual reflections, and MoneyFest attribution/verification. Manual steps, playback, alternate outcomes, source links, and a shared inspector expose how the systems work.
+- Four engineering disciplines connect the technology stack to implementation evidence. No invented user counts, business outcomes, or production certifications are claimed.
 
 ## Active files
 
-- `index.html`: semantic page, navigation, sections, dialogs, and metadata.
-- `src/studio.js`: technology explorer, filtering, case studies, archive, typing, and pipeline interactions.
-- `src/studio.css`, `src/studio-art.css`, and `src/cinema.css`: responsive presentation and procedural project illustrations.
-- `src/visual/StudioSculpture.js`: lazy-loaded hero and request-route 3D scenes with lifecycle and fallback handling.
-- `src/systemExplorer.js`: three source-based architecture routes, stage explanations, and playback.
-- `public/gas-wordmark.svg` and `public/favicon.svg`: custom vector brand assets.
-- `src/data/studioCatalog.js`: current source corrections, extending `src/data/catalog.js`.
-- `research/github-audit.json`: repository trees, commit identifiers, READMEs, manifests, and selected implementation snapshots.
-- `research/REVIEW.md`: scope, evidence, and important corrections.
+- `index.html`: page, film scenes, interactive product markup, dialogs, and metadata.
+- `src/workbench.js`: projects, archive, technology evidence, system walkthroughs, and accessibility interactions.
+- `src/productEngine.js`: film timeline, scroll/playback coordination, product interactions, and motion preferences.
+- `src/product-film.css`, `src/cinema-opening.css`: film composition and responsive frames.
+- `src/kinetic.js`: lighting commands, transitions, and persistent themes.
+- `src/identity.js`, `public/identity/`: logo previews, selection, and vector assets.
+- `src/atelier.css`: neutral palette and logo comparison panel.
+- `src/systemMap.js`: measured SVG system connections and request signals.
+- `src/workbench.css`, `src/workbench-projects.css`, `src/kinetic.css`, `src/foundry.css`: shared site, project, and compact architecture styling.
+- `src/data/studioCatalog.js`, `src/data/toolkit.js`, `src/data/systems.js`: project facts, technologies, and source-based architecture descriptions.
 
-The earlier entry files, galaxy/matter work, shot systems, and tests are retained as previous explorations; they are not imported by the current page. Existing uncommitted entry files were backed up under the ignored `.frames/before-redesign/` before replacement. The first studio iteration was also saved in `.frames/before-cinema/`. `HANDOFF.md` and `SHOTLIST.md` refer to the earlier design.
+Earlier explorations remain on disk as references. `ProductAssembly.js`, `SignalWorld.js`, `IdeaEngine.js`, and `productFoundry.js` are not imported by the current experience. The production opening does not load Three.js or require Canvas/WebGL.
 
-## Verify
+## Verification
 
-With the local server running:
+With the development server running:
 
 ```sh
-node scripts/check-cinema.mjs
+node scripts/check-product-film.mjs
+node scripts/check-film-layout.mjs
+node scripts/capture-film.mjs
+npm run build
 ```
 
-The current browser check uses installed Windows Chrome and Playwright. It covers project filters, technology evidence, keyboard tabs, dialogs, archive search, pipeline branches, responsive overflow at 320–1440px, reduced motion, touch interaction, and WebGL fallback. Screenshots are saved to the ignored `.frames/` directory. `npm run build` validates the production bundle.
+The browser check uses installed Windows Chrome and Playwright (`CHROME_PATH` can override its location). It covers the scroll timeline, playback/pause, chapters, product tabs and tasks, theme validation/persistence, all logo options, dialogs/focus restoration, project filters, archive search, architecture paths, keyboard navigation, reduced motion, touch, blocked storage/canvas, overflow and diagram overlap at 320–1920px, and browser errors. The capture script saves storyboard frames under ignored `.frames/`.
 
-## Content scope
+Older foundry/kinetic checks target retired openings and are retained as reference; use the commands above for the current implementation.
 
-Public GitHub metadata, trees, READMEs, dependency manifests, and selected source were reviewed on September 26, 2026. This is a source review, not a production certification or exhaustive audit of every line. The portfolio makes no unverified claims about employment, business impact, user counts, or autonomous operation.
+## Design and content references
 
-Notable corrections: Tutor-Agent currently persists to MongoDB and returns a template tutor response; MoneyFest has an implemented gated attribution/verifier pipeline; Buddy has Groq reflections with deterministic fallbacks. Source links let visitors inspect the implementation directly.
+Silvia Malavasi, DAQ Consulting, LaunchFar, and the supplied Arc design-directory collection were reviewed in a browser for typography, motion, and composition. The supplied Medium article blocked browser access. No external artwork or layouts were copied. Review details are in `research/DESIGN-REFERENCES.md`.
+
+Project descriptions preserve the September 26 source audit in `research/github-audit.json` and `research/REVIEW.md`. Tutor-Agent uses MongoDB and template responses; MoneyFest uses gated attribution and verification; Buddy combines Groq reflections with deterministic fallback behavior. Public project previews may require their own backend services.

@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 198 54" fill="none"><title>GAS</title><g stroke="#efeee5" stroke-width="8" stroke-linejoin="bevel" stroke-linecap="square"><path d="M52 10H17L8 19V36L17 45H52V29H35"/><path d="M72 45L93 9H100L121 45M81 32H112"/><path d="M186 10H150L141 19V23L151 28H178L187 34V37L179 45H142"/></g><path d="M93 9H100L106 19H87Z" fill="#ff6b35"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 188 66">
+  <title>GAS / editorial</title>
+  <text
+    x="5"
+    y="51"
+    fill="#202322"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="62"
+    letter-spacing="-6"
+  >
+    GAS
+  </text>
+  <path
+    d="M133 54H178M156 10V36M143 23H169M147 14L165 32M165 14L147 32"
+    stroke="#8b632d"
+    stroke-width="2"
+  />
+</svg>
