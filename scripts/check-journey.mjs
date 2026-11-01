@@ -17,11 +17,11 @@ for(const [name,width,height,reducedMotion] of [['journey-desktop',1440,1000,'no
   assert.equal(await p.locator('.project-card').count(),catalog.filter(p=>p.featured!==false).length);assert.equal(await p.locator('.archive-row').count(),catalog.length);
   assert.equal(await p.locator('#open-index [data-repo-count]').innerText(),String(catalog.length));
   assert.equal(await p.locator('.archive-row a[href*="/GMAT"]').count(),0);
-  for(const selector of ['#project-daymark img','#project-gmat img']){
-    const img=p.locator(selector);await img.scrollIntoViewIfNeeded();
-    await p.waitForFunction(el=>el.complete&&el.naturalWidth>0,await img.elementHandle());
-  }
-  await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(1000);
+  await p.screenshot({path:`.frames/${name}-loaded.png`});
+  // Check data-driven URLs without scrolling a pinned gallery out of position.
+  await p.locator('.capture-art img').evaluateAll(async images=>{
+    await Promise.all(images.map(async image=>{image.loading='eager';await image.decode();}));
+  });
   assert(await p.evaluate(()=>getComputedStyle(document.body).overflowY!=='hidden'));
   await p.screenshot({path:`.frames/${name}-hero.png`});
   if(reducedMotion==='no-preference'){
