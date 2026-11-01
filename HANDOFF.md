@@ -14,7 +14,9 @@ This continuation adds:
 
 Local production build passes. Local Chrome navigation was denied by the execution
 environment (ERR_NETWORK_ACCESS_DENIED); use the GitHub Actions browser job for
-full integration results. See the workflow run and PR for final check state.
+full integration results. All desktop/mobile/reduced-motion, image, navigation,
+search and no-JavaScript checks passed with zero browser errors in run 41305984875:
+https://github.com/Atomstars/GAS/actions/runs/41305984875
 GitHub Pages must use GitHub Actions as its build source.
 
 ---

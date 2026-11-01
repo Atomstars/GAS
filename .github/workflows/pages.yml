@@ -36,6 +36,7 @@ jobs:
         with:
           name: browser-checks
           path: .frames/
+          include-hidden-files: true
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
