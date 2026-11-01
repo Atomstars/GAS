@@ -1,3 +1,26 @@
+# Current handoff — November 1, 2026
+
+The active implementation is index.html + src/main.js + src/style.css.
+The Three.js shots described below are legacy explorations, not the active page.
+
+This continuation adds:
+- Relative Vite asset paths for the /GAS/ repository deployment.
+- Runtime project-image paths using import.meta.env.BASE_URL.
+- Twelve current public catalog entries; Findspace and Practice Projects replace
+  removed repository links. Private repositories remain excluded.
+- Catalog-driven index/archive counts and featured flags.
+- A Vite build / production browser-check / Pages deployment workflow.
+- A production test server mounted at /GAS/ and portable browser checks.
+
+Local production build passes. Local Chrome navigation was denied by the execution
+environment (ERR_NETWORK_ACCESS_DENIED); use the GitHub Actions browser job for
+full integration results. All desktop/mobile/reduced-motion, image, navigation,
+search and no-JavaScript checks passed with zero browser errors in run 41305984875:
+https://github.com/Atomstars/GAS/actions/runs/41305984875
+GitHub Pages must use GitHub Actions as its build source.
+
+---
+
 # GAS — handoff
 
 Read `SHOTLIST.md` first; it is the production bible. This file is the state of

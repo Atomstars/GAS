@@ -17,7 +17,7 @@ Open http://localhost:5173. Build with `npm run build`; inspect production with 
 2. **Threshold:** independently floating discipline labels bridge the opening and the work.
 3. **Work:** a pinned horizontal passage through eleven substantive projects on desktop. Phones and reduced-motion users get a native swipeable gallery with previous/next controls.
 4. **Inside the build:** a vertical project story beside a sticky heading. Any project card or index entry can select the story; the selector can change it in place.
-5. **Collection, person, closing:** all fourteen public repositories, a large typographic reveal, and a slower architectural contact frame.
+5. **Collection, person, closing:** the current public repositories, a large typographic reveal, and a slower architectural contact frame.
 
 ## Implementation
 
@@ -32,16 +32,42 @@ The previous Three.js shot systems in `src/core`, `src/shots`, `src/ui`, and `sr
 
 ## Validation
 
-With the dev server running, `node scripts/check-journey.mjs` checks the opening, native scroll, desktop horizontal travel, mobile/reduced-motion gallery, project stories, repository index, contact, image loading, document overflow, and browser errors. Screenshots go to `.frames/`, which is ignored by Git. The script currently uses installed Windows Chrome.
+With the dev server running, `node scripts/check-journey.mjs` checks the opening, native scroll, desktop horizontal travel, mobile/reduced-motion gallery, project stories, repository index, contact, image loading, document overflow, and browser errors. Screenshots go to `.frames/`, which is ignored by Git. Set `GAS_BASE_URL` to test a deployed or mounted production URL. The script uses installed Windows Chrome when available; otherwise install Playwright Chromium.
 
 `node scripts/capture-projects.mjs` refreshes project screenshots without signing in or changing remote data.
 
 ## Content provenance
 
-Public repository metadata, READMEs, and relevant source were reviewed on September 23, 2026. All fourteen public repositories are represented, including README-only and empty archives. The separate Stock Simulator has not been located and needs its GitHub repository name or URL.
+Existing project stories and preview observations date to September 23, 2026. Findspace and Practice Projects were checked against their current README/source on November 1, 2026. Repository membership was refreshed on November 1, 2026: twelve public repositories are represented, including Findspace and the consolidated Practice Projects. Removed repositories and private repositories are excluded.
 
 Daymark loaded during review. Café POS’s product service and GMAT Trainer’s guest question bank were unavailable; their status is stated in the project stories. Other preview links come from repository metadata and do not imply operational backend services. MoneyFest explains observed stock moves; Job-Agent creates search plans; Housing Predictor uses small illustrative learning datasets.
 
 Project artwork is labelled as a design/system study or an actual capture. The aperture is generated artwork, not a photograph of a claimed personal project. The legacy Earth texture is from [Solar System Scope](https://www.solarsystemscope.com/textures/) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 There is no contact backend, analytics, automatic GitHub sync, or credential requirement. Contact opens an email link.
+
+## GitHub Pages deployment
+
+The workflow in `.github/workflows/pages.yml` builds Vite, runs browser checks against
+the compiled site mounted at `/GAS/`, and deploys only a passing main-branch build.
+In repository **Settings → Pages → Build and deployment**, select **GitHub Actions**
+as the source. The published site is https://atomstars.github.io/GAS/.
+
+Production assets use relative paths, including project images rendered from data,
+so the same output supports repository paths and root-hosted previews.
+Project counts come from the catalog rather than hardcoded repository totals.
+
+To reproduce the production checks locally:
+
+```sh
+npm ci
+npm run build
+node scripts/serve-built.mjs
+# In another terminal:
+# PowerShell: $env:GAS_BASE_URL='http://127.0.0.1:5173/GAS/'
+# POSIX: export GAS_BASE_URL=http://127.0.0.1:5173/GAS/
+node scripts/check-journey.mjs
+```
+
+Preview-service failures in the older stories are historical observations, not live
+health checks. No private repository details are published.

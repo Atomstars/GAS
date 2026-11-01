@@ -29,6 +29,8 @@ function frameSink() {
 }
 
 export default defineConfig({
+  // Relative URLs work on GitHub Pages (/GAS/) and root-hosted previews.
+  base: './',
   plugins: [frameSink()],
   server: { port: 5173 },
 });
