@@ -1,16 +1,27 @@
 import { chromium } from 'playwright';
 import { mkdir } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { catalog } from '../src/data/catalog.js';
+const baseUrl=process.env.GAS_BASE_URL || 'http://127.0.0.1:5173/';
+const chrome=process.env.GAS_CHROME_PATH || (existsSync('C:/Program Files/Google/Chrome/Application/chrome.exe') ? 'C:/Program Files/Google/Chrome/Application/chrome.exe' : undefined);
 await mkdir('.frames',{recursive:true});
-const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+const browser=await chromium.launch({executablePath:chrome,headless:true});
 const errors=[];
 for(const [name,width,height,reducedMotion] of [['journey-desktop',1440,1000,'no-preference'],['journey-mobile',390,844,'no-preference'],['journey-reduced',320,740,'reduce']]){
   const ctx=await browser.newContext({viewport:{width,height},reducedMotion,hasTouch:width<800});
   const p=await ctx.newPage();p.on('pageerror',e=>errors.push(`${name}: ${e.message}`));p.on('console',m=>{if(m.type()==='error')errors.push(`${name}: ${m.text()}`);});
-  await p.goto('http://127.0.0.1:5173',{waitUntil:'networkidle'});
+  await p.goto(baseUrl,{waitUntil:'networkidle'});
   await p.waitForFunction(()=>document.querySelector('#loader').hidden);await p.waitForTimeout(1400);
   assert(await p.locator('#hero-image').evaluate(img=>img.complete&&img.naturalWidth>0));
-  assert.equal(await p.locator('.project-card').count(),11);assert.equal(await p.locator('.archive-row').count(),14);
+  assert.equal(await p.locator('.project-card').count(),catalog.filter(p=>p.featured!==false).length);assert.equal(await p.locator('.archive-row').count(),catalog.length);
+  assert.equal(await p.locator('#open-index [data-repo-count]').innerText(),String(catalog.length));
+  assert.equal(await p.locator('.archive-row a[href*="/GMAT"]').count(),0);
+  for(const selector of ['#project-daymark img','#project-gmat img']){
+    const img=p.locator(selector);await img.scrollIntoViewIfNeeded();
+    await p.waitForFunction(el=>el.complete&&el.naturalWidth>0,await img.elementHandle());
+  }
+  await p.evaluate(()=>scrollTo(0,0));await p.waitForTimeout(1000);
   assert(await p.evaluate(()=>getComputedStyle(document.body).overflowY!=='hidden'));
   await p.screenshot({path:`.frames/${name}-hero.png`});
   if(reducedMotion==='no-preference'){
@@ -38,5 +49,5 @@ for(const [name,width,height,reducedMotion] of [['journey-desktop',1440,1000,'no
   console.log(`${name}: opening, native scrolling, horizontal work, vertical case studies, index, contact passed`);
   await ctx.close();
 }
-const ctx=await browser.newContext({javaScriptEnabled:false});const p=await ctx.newPage();await p.goto('http://127.0.0.1:5173');assert(await p.locator('h1').isVisible());assert(await p.locator('.no-script a').isVisible());await ctx.close();
+const ctx=await browser.newContext({javaScriptEnabled:false});const p=await ctx.newPage();await p.goto(baseUrl);assert(await p.locator('h1').isVisible());assert(await p.locator('.no-script a').isVisible());await ctx.close();
 await browser.close();assert.deepEqual(errors,[]);console.log('No-JavaScript fallback and zero browser errors passed.');

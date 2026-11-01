@@ -5,14 +5,16 @@ import { catalog, repoUrl } from './data/catalog.js';
 gsap.registerPlugin(ScrollTrigger);
 const $=s=>document.querySelector(s);
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const featured=catalog.filter(p=>!['first-code','hcl','prince'].includes(p.id));
+const featured=catalog.filter(p=>p.featured!==false);
 const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number=n=>String(n).padStart(2,'0');
+const assetUrl=url=>`${import.meta.env.BASE_URL}${url.replace(/^\//,'')}`;
+document.querySelectorAll('[data-repo-count]').forEach(el=>{el.textContent=catalog.length;});
 const external=(url,label)=>`<a href="${escape(url)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`;
 
 // Each project has its own graphic language; all non-capture visuals are labelled studies.
 function art(p){
-  if(p.image)return `<div class="project-art capture-art"><span>PRODUCT CAPTURE</span><img src="${p.image}" alt="${p.id==='gmat'?'GMAT Trainer entry screen':'Daymark daily timeline'}" width="1440" height="1000" loading="lazy"></div>`;
+  if(p.image)return `<div class="project-art capture-art"><span>PRODUCT CAPTURE</span><img src="${escape(assetUrl(p.image))}" alt="${p.id==='gmat'?'GMAT Trainer entry screen':'Daymark daily timeline'}" width="1440" height="1000" loading="lazy"></div>`;
   if(p.id==='davina')return '<div class="project-art davina-art"><div class="aero-rings"></div><span class="aero-word">DAVINA</span><span class="art-label">AEROSPACE / DIGITAL EXPERIENCE</span><span class="art-caption">DESIGN STUDY</span></div>';
   if(p.theme==='market')return `<div class="project-art market-art"><span class="art-label">PRICE IS ONLY HALF THE STORY.</span><svg viewBox="0 0 500 200" aria-hidden="true"><path class="chart-grid" d="M0 40H500M0 100H500M0 160H500M70 0V200M170 0V200M270 0V200M370 0V200M470 0V200"/><path class="chart-line" d="M0 155L40 143L65 155L100 115L130 128L168 83L202 109L240 78L270 91L306 40L340 66L379 20L418 47L451 27L500 34"/></svg><div class="evidence-chip">01 / THE MOVE</div><div class="evidence-chip second">02 / THE EVIDENCE</div><span class="art-caption">ILLUSTRATIVE STUDY / NOT LIVE MARKET DATA</span></div>`;
   if(p.id==='buddy')return '<div class="project-art buddy-art"><span class="art-label">A LITTLE MORE CLARITY.</span><div class="budget-ring"><span>buddy<small>SPEND · PLAN · UNDERSTAND</small></span></div><span class="art-caption">PRODUCT CONCEPT / PERSONAL FINANCE</span></div>';
